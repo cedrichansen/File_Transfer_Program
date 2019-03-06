@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 public class UDPServer {
 
     DatagramSocket socket;
-    String FILE_LOCATION = "~/Desktop/test.txt";
+    String FILE_LOCATION = "/home/chansen/CSC/csc445hw02";
 
 
 
