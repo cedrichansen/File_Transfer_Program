@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -88,11 +89,12 @@ public class Main {
             try {
                 UDPServer server = new UDPServer(PORT);
                 boolean result = server.acceptFile();
-
                 server.close();
 
 
             } catch (SocketException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             System.out.println("Waiting for client...");
