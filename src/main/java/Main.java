@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -52,6 +53,8 @@ public class Main {
 
     final static int PORT = 2689;
 
+    public static int PACKET_SIZE = 512;
+
 
     public static void main (String [] args) {
 
@@ -65,23 +68,30 @@ public class Main {
 
         if (role == 1) {
             String ip = getInput("Enter server IP address: ");
+            String file = getInput("Enter the file you would like to send: ");
             try {
                 UDPClient client = new UDPClient(ip, PORT);
+                client.sendFile(file);
+                client.close();
 
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             } catch (SocketException e) {
                 e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
 
-
-
-
         } else if (role == 2) {
-            String port = getInput("Enter port number: ");
+
             try {
-                UDPServer server = new UDPServer(Integer.parseInt(port));
+                UDPServer server = new UDPServer(PORT);
+                boolean result = server.acceptFile();
+
+                server.close();
+
+
             } catch (SocketException e) {
                 e.printStackTrace();
             }

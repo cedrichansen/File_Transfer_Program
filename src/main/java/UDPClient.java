@@ -14,9 +14,6 @@ public class UDPClient {
     int port;
 
 
-
-    int PACKET_SIZE = 512;
-
     public UDPClient(String ip, int port) throws UnknownHostException, SocketException {
         address = InetAddress.getByName(ip);
         this.port = port;
@@ -53,18 +50,18 @@ public class UDPClient {
         //only send 512 bytes at a time as per IETF RFC 1350, and wait for ack
         //packet less than 512 bytes signals the end of transmission
 
-        int numPackets = roundUp(data.length, PACKET_SIZE);
+        int numPackets = roundUp(data.length, Main.PACKET_SIZE);
 
         //populate byteArrays which will be sent
         for (i = 0; i<numPackets; i++) {
             if (i == numPackets-1) {
                 //this is the last byte array to be read, and likely isnt 512 bytes
-                byte [] packet = Arrays.copyOfRange(data, i*PACKET_SIZE, data.length+1);
+                byte [] packet = Arrays.copyOfRange(data, i*Main.PACKET_SIZE, data.length+1);
                 sendPacket(packet);
 
             } else {
                 //512 byte array
-                byte [] packet = Arrays.copyOfRange(data,i*PACKET_SIZE, (i+1)*PACKET_SIZE);
+                byte [] packet = Arrays.copyOfRange(data,i*Main.PACKET_SIZE, (i+1)*Main.PACKET_SIZE);
                 sendPacket(packet);
             }
         }
@@ -83,11 +80,13 @@ public class UDPClient {
             socket.send(msg);
 
             try {
-                DatagramPacket response = new DatagramPacket(data, data.length);
+                byte [] resp = new byte[data.length];
+                DatagramPacket response = new DatagramPacket(resp, resp.length);
                 socket.setSoTimeout(2000);
                 socket.receive(response);
 
-                response.getData();
+                System.out.println("Check here if the BYTES ARE THE SAME");
+
                 packetSuccessfullySent = true;
 
             } catch (SocketException e) {
