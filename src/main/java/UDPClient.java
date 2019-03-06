@@ -82,7 +82,7 @@ public class UDPClient {
             try {
                 byte [] resp = new byte[data.length];
                 DatagramPacket response = new DatagramPacket(resp, resp.length);
-                socket.setSoTimeout(2000);
+                socket.setSoTimeout(30000);
                 socket.receive(response);
 
                 System.out.println("Check here if the BYTES ARE THE SAME");
