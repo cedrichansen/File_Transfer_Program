@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class UDPClient {
@@ -24,10 +25,18 @@ public class UDPClient {
 
 
 
-    public void send(String fileName) throws IOException {
+    public void sendFile(String fileName) throws IOException {
+
+        long fileSizeL = (new File(fileName).length());
+
+        //send to the server how big the file will be
+        byte [] fileSize = longToBytes(fileSizeL);
+        sendPacket(fileSize);
+
+
         //create byte container to send the file
         //size of the buffer is equivalent to the size of the file in bytes
-        byte [] data = new byte[(int)(new File(fileName).length())];
+        byte [] data = new byte[(int)fileSizeL];
 
         FileInputStream fs = new FileInputStream(fileName);
 
@@ -77,6 +86,8 @@ public class UDPClient {
                 DatagramPacket response = new DatagramPacket(data, data.length);
                 socket.setSoTimeout(2000);
                 socket.receive(response);
+
+                response.getData();
                 packetSuccessfullySent = true;
 
             } catch (SocketException e) {
@@ -97,8 +108,18 @@ public class UDPClient {
 
 
 
+    /*
+    Helper functions
+     */
+
     public static int roundUp(int num, int divisor) {
         return (num + divisor - 1) / divisor;
+    }
+
+    public byte[] longToBytes(long x) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(x);
+        return buffer.array();
     }
 
 
