@@ -96,7 +96,7 @@ public class UDPClient {
 
             try {
                 socket.send(msg);
-                socket.setSoTimeout(10000);
+                socket.setSoTimeout(2000);
                 socket.receive(response);
 
                 packetSuccessfullySent = true;
