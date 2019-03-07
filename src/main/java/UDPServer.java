@@ -41,7 +41,7 @@ public class UDPServer {
             if (i == numPackets-1) {
                 //reading the last packet
                 byte [] fileDataBuf = new byte [(int)fileSize- (i*Main.PACKET_SIZE)];
-                DatagramPacket data = new DatagramPacket(fileDataBuf, fileData.length);
+                DatagramPacket data = new DatagramPacket(fileDataBuf, fileDataBuf.length);
                 try {
                     socket.receive(data);
                     //respond to the client by echoing the data
@@ -56,7 +56,7 @@ public class UDPServer {
             } else {
                 //reading 512 bytes
                 byte [] fileDataBuf = new byte [Main.PACKET_SIZE];
-                DatagramPacket data = new DatagramPacket(fileDataBuf, fileData.length);
+                DatagramPacket data = new DatagramPacket(fileDataBuf, fileDataBuf.length);
                 try {
                     socket.receive(data);
                     //respond to the client by echoing the data
