@@ -51,6 +51,8 @@ public class UDPServer {
                     e.printStackTrace();
                 }
 
+
+
                 System.arraycopy(fileDataBuf, 0, fileData, i*Main.PACKET_SIZE, fileDataBuf.length);
 
             } else {
@@ -72,7 +74,8 @@ public class UDPServer {
 
                 System.arraycopy(fileDataBuf, 0, fileData, i*Main.PACKET_SIZE, fileDataBuf.length);
             }
-        }
+            System.out.println("Packets received: " + i);
+        }   
 
         try {
             fos.write(fileData);
