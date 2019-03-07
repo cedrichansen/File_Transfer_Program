@@ -104,7 +104,7 @@ public class UDPClient {
                 packetSuccessfullySent = true;
 
             } catch (IOException e) {
-                System.out.println("Socket timed out, trying to resend packet");
+                System.out.println("Timeout - Resending");
             }
 
         } while (!packetSuccessfullySent);
