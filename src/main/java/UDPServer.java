@@ -57,12 +57,13 @@ public class UDPServer {
                 //reading 512 bytes
                 byte [] fileDataBuf = new byte [Main.PACKET_SIZE];
                 DatagramPacket data = new DatagramPacket(fileDataBuf, fileDataBuf.length);
+
                 try {
                     socket.receive(data);
                     //respond to the client by sending a 1 byte reply
                     byte [] respArr = new byte [1];
                     respArr[0] = (byte)1;
-                    DatagramPacket resp = new DatagramPacket(respArr, respArr.length);
+                    DatagramPacket resp = new DatagramPacket(respArr, respArr.length, data.getAddress(), data.getPort());
                     socket.send(resp);
 
                 } catch (IOException e) {
