@@ -92,10 +92,9 @@ public class UDPClient {
         // the response
         byte[] resp = new byte[1];
         DatagramPacket response = new DatagramPacket(resp, resp.length, address, port);
-
-
+        
         //try sending the udp packet until it successfully got an acknowledgement from server
-        while (!packetSuccessfullySent) {
+         do {
 
             try {
                 socket.send(msg);
@@ -106,11 +105,9 @@ public class UDPClient {
 
             } catch (IOException e) {
                 System.out.println("Socket timed out, trying to resend packet");
-                e.printStackTrace();
-                packetSuccessfullySent = false;
             }
 
-        }
+        } while (!packetSuccessfullySent);
 
 
     }
