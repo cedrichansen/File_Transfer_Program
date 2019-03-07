@@ -23,27 +23,26 @@ public class UDPClient {
     }
 
 
-
     public void sendFile(String fileName) throws IOException {
 
         long fileSizeL = (new File(fileName).length());
 
         //send to the server how big the file will be
-        byte [] fileSize = longToBytes(fileSizeL);
+        byte[] fileSize = longToBytes(fileSizeL);
         sendPacket(fileSize);
 
 
         //create byte container to send the file
         //size of the buffer is equivalent to the size of the file in bytes
-        byte [] data = new byte[(int)fileSizeL];
+        byte[] data = new byte[(int) fileSizeL];
 
         FileInputStream fs = new FileInputStream(fileName);
 
         //read the filestream into the array of bytes
         int i = 0;
 
-        while (fs.available()!=0) {
-            data[i] = (byte)fs.read();
+        while (fs.available() != 0) {
+            data[i] = (byte) fs.read();
             i++;
         }
         fs.close();
@@ -59,15 +58,15 @@ public class UDPClient {
         pb.start();
 
         //populate byteArrays which will be sent
-        for (i = 0; i<numPackets; i++) {
-            if (i == numPackets-1) {
+        for (i = 0; i < numPackets; i++) {
+            if (i == numPackets - 1) {
                 //this is the last byte array to be read, and likely isnt 512 bytes
-                byte [] packet = Arrays.copyOfRange(data, i*Main.PACKET_SIZE, data.length+1);
+                byte[] packet = Arrays.copyOfRange(data, i * Main.PACKET_SIZE, data.length + 1);
                 sendPacket(packet);
 
             } else {
                 //512 byte array
-                byte [] packet = Arrays.copyOfRange(data,i*Main.PACKET_SIZE, (i+1)*Main.PACKET_SIZE);
+                byte[] packet = Arrays.copyOfRange(data, i * Main.PACKET_SIZE, (i + 1) * Main.PACKET_SIZE);
                 sendPacket(packet);
             }
 
@@ -82,34 +81,36 @@ public class UDPClient {
     }
 
 
-    public void sendPacket(byte [] data) throws IOException{
+    public void sendPacket(byte[] data) {
 
         boolean packetSuccessfullySent = false;
+        DatagramPacket msg = new DatagramPacket(data, data.length, address, port);
+
+        // the response
+        byte[] resp = new byte[1];
+        DatagramPacket response = new DatagramPacket(resp, resp.length, address, port);
+
 
         //try sending the udp packet until it successfully got an acknowledgement from server
         while (!packetSuccessfullySent) {
 
-            DatagramPacket msg = new DatagramPacket(data, data.length, address, port);
-            socket.send(msg);
-
             try {
-                byte [] resp = new byte[1];
-                DatagramPacket response = new DatagramPacket(resp, resp.length,  address, port);
+                socket.send(msg);
                 socket.setSoTimeout(10000);
                 socket.receive(response);
 
                 packetSuccessfullySent = true;
 
-            } catch (SocketException e) {
+            } catch (IOException e) {
                 System.out.println("Socket timed out, trying to resend packet");
                 e.printStackTrace();
-                packetSuccessfullySent =false;
+                packetSuccessfullySent = false;
             }
+
         }
 
 
     }
-
 
 
     public void close() {
@@ -131,13 +132,6 @@ public class UDPClient {
         buffer.putLong(x);
         return buffer.array();
     }
-
-
-
-
-
-
-
 
 
 }
