@@ -1,3 +1,5 @@
+import me.tongfei.progressbar.ProgressBar;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,6 +39,10 @@ public class UDPServer {
         int numPackets = UDPClient.roundUp(fileData.length , Main.PACKET_SIZE);
 
 
+        ProgressBar pb = new ProgressBar("Received data", numPackets);
+
+        pb.start();
+
         for (int i=0; i<numPackets; i++) {
             if (i == numPackets-1) {
                 //reading the last packet
@@ -74,7 +80,7 @@ public class UDPServer {
 
                 System.arraycopy(fileDataBuf, 0, fileData, i*Main.PACKET_SIZE, fileDataBuf.length);
             }
-            System.out.println("Packets received: " + i);
+            pb.step();
         }
 
         try {
@@ -84,6 +90,7 @@ public class UDPServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        pb.stop();
 
         System.out.println("File written successfully! File is located at: " + FILE_LOCATION);
 

@@ -41,10 +41,13 @@ public class UDPClient {
         //read the filestream into the array of bytes
         int i = 0;
 
-        while (fs.available() != 0) {
-            data[i] = (byte) fs.read();
-            i++;
-        }
+//        while (fs.available() != 0) {
+//            data[i] = (byte) fs.read();
+//            i++;
+//        }
+//        fs.close();
+
+        fs.read(data);
         fs.close();
 
 
@@ -53,7 +56,7 @@ public class UDPClient {
 
         int numPackets = roundUp(data.length, Main.PACKET_SIZE);
 
-        ProgressBar pb = new ProgressBar("Progress", numPackets);
+        ProgressBar pb = new ProgressBar("Sent Data", numPackets);
 
         pb.start();
 
