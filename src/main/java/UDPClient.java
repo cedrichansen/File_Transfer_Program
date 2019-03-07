@@ -1,3 +1,5 @@
+import me.tongfei.progressbar.ProgressBar;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -52,6 +54,10 @@ public class UDPClient {
 
         int numPackets = roundUp(data.length, Main.PACKET_SIZE);
 
+        ProgressBar pb = new ProgressBar("Progress", numPackets);
+
+        pb.start();
+
         //populate byteArrays which will be sent
         for (i = 0; i<numPackets; i++) {
             if (i == numPackets-1) {
@@ -64,7 +70,14 @@ public class UDPClient {
                 byte [] packet = Arrays.copyOfRange(data,i*Main.PACKET_SIZE, (i+1)*Main.PACKET_SIZE);
                 sendPacket(packet);
             }
+
+            pb.step();
+
         }
+
+        pb.stop();
+
+        System.out.println("Successfully sent the file");
 
     }
 
@@ -85,7 +98,7 @@ public class UDPClient {
                 socket.setSoTimeout(30000);
                 socket.receive(response);
 
-                System.out.println("Check here if the BYTES ARE THE SAME");
+                //System.out.println("Check here if the BYTES ARE THE SAME");
 
                 packetSuccessfullySent = true;
 
