@@ -94,7 +94,7 @@ public class UDPClient {
 
             try {
                 byte [] resp = new byte[1];
-                DatagramPacket response = new DatagramPacket(resp, resp.length);
+                DatagramPacket response = new DatagramPacket(resp, resp.length,  address, port);
                 socket.setSoTimeout(3000);
                 socket.receive(response);
 
