@@ -59,8 +59,11 @@ public class UDPServer {
                 DatagramPacket data = new DatagramPacket(fileDataBuf, fileDataBuf.length);
                 try {
                     socket.receive(data);
-                    //respond to the client by echoing the data
-                    socket.send(data);
+                    //respond to the client by sending a 1 byte reply
+                    byte [] respArr = new byte [1];
+                    respArr[0] = (byte)1;
+                    DatagramPacket resp = new DatagramPacket(respArr, respArr.length);
+                    socket.send(resp);
 
                 } catch (IOException e) {
                     e.printStackTrace();

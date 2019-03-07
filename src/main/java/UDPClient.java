@@ -93,9 +93,9 @@ public class UDPClient {
             socket.send(msg);
 
             try {
-                byte [] resp = new byte[data.length];
+                byte [] resp = new byte[1];
                 DatagramPacket response = new DatagramPacket(resp, resp.length);
-                socket.setSoTimeout(30000);
+                socket.setSoTimeout(3000);
                 socket.receive(response);
 
                 //System.out.println("Check here if the BYTES ARE THE SAME");
@@ -103,8 +103,8 @@ public class UDPClient {
                 packetSuccessfullySent = true;
 
             } catch (SocketException e) {
-                System.out.println("Socket timed out");
-                e.printStackTrace();
+                System.out.println("Socket timed out, trying to resend packet");
+                //e.printStackTrace();
                 packetSuccessfullySent =false;
             }
         }
