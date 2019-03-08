@@ -24,6 +24,8 @@ public class UDPServer {
 
         FILE_LOCATION = filePath.replace("~", System.getProperty("user.home"));
 
+        System.out.println("Waiting for a connection...");
+
         //longs are 8 bytes, and we know we are receiving a long first
         byte [] fileSizeBytes = new byte[8];
 
