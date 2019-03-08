@@ -5,12 +5,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.io.*;
 
 
 public class UDPServer {
 
     DatagramSocket socket;
-    String FILE_LOCATION = "/home/chansen/Desktop/test.txt";
+    String FILE_LOCATION = System.getProperty("user.home");
 
 
 
@@ -19,7 +20,9 @@ public class UDPServer {
     }
 
 
-    public boolean acceptFile() throws FileNotFoundException {
+    public boolean acceptFile(String filePath) throws FileNotFoundException {
+
+        FILE_LOCATION = FILE_LOCATION + filePath;
 
         //longs are 8 bytes, and we know we are receiving a long first
         byte [] fileSizeBytes = new byte[8];
@@ -35,7 +38,13 @@ public class UDPServer {
         }
 
         byte [] fileData = new byte [(int)fileSize];
-        FileOutputStream fos = new FileOutputStream(FILE_LOCATION);
+        File fileBeingReceived = new File(FILE_LOCATION);
+        try {
+            fileBeingReceived.createNewFile();
+        } catch (IOException e) {
+            System.out.println("Filepath is invalid... Please try again");
+        } 
+        FileOutputStream fos = new FileOutputStream(fileBeingReceived, false);
         int numPackets = UDPClient.roundUp(fileData.length , Main.PACKET_SIZE);
 
 

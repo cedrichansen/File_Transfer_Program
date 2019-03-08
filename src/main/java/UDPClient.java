@@ -23,30 +23,20 @@ public class UDPClient {
     }
 
 
-    public void sendFile(String fileName) throws IOException {
+    public void sendFile(String filePath) throws IOException {
 
-        long fileSizeL = (new File(fileName).length());
+        filePath = System.getProperty("user.home") + filePath;
+
+        long fileSizeL = (new File(filePath).length());
 
         //send to the server how big the file will be
         byte[] fileSize = longToBytes(fileSizeL);
         sendPacket(fileSize);
 
-
         //create byte container to send the file
         //size of the buffer is equivalent to the size of the file in bytes
         byte[] data = new byte[(int) fileSizeL];
-
-        FileInputStream fs = new FileInputStream(fileName);
-
-        //read the filestream into the array of bytes
-        int i = 0;
-
-//        while (fs.available() != 0) {
-//            data[i] = (byte) fs.read();
-//            i++;
-//        }
-//        fs.close();
-
+        FileInputStream fs = new FileInputStream(filePath);
         fs.read(data);
         fs.close();
 
@@ -60,8 +50,8 @@ public class UDPClient {
 
         pb.start();
 
-        //populate byteArrays which will be sent
-        for (i = 0; i < numPackets; i++) {
+        //Populate and send the byte arrays
+        for (int i = 0; i < numPackets; i++) {
             if (i == numPackets - 1) {
                 //this is the last byte array to be read, and likely isnt 512 bytes
                 byte[] packet = Arrays.copyOfRange(data, i * Main.PACKET_SIZE, data.length + 1);

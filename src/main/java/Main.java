@@ -97,7 +97,7 @@ public class Main {
 
             try {
                 UDPServer server = new UDPServer(PORT);
-                boolean result = server.acceptFile();
+                boolean result = server.acceptFile(getInput("Enter the destination filepath"));
                 server.close();
 
 
