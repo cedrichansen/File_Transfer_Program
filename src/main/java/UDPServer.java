@@ -110,9 +110,6 @@ public class UDPServer {
 
 
 
-    public void receivePacket()
-
-
     public void close() {
         socket.close();
     }
