@@ -11,7 +11,7 @@ import java.io.*;
 public class UDPServer {
 
     DatagramSocket socket;
-    String FILE_LOCATION = System.getProperty("user.home");
+    String FILE_LOCATION;
 
 
 
@@ -22,7 +22,7 @@ public class UDPServer {
 
     public boolean acceptFile(String filePath) throws FileNotFoundException {
 
-        FILE_LOCATION = FILE_LOCATION + filePath;
+        FILE_LOCATION = filePath.replace("~", System.getProperty("user.home"));
 
         //longs are 8 bytes, and we know we are receiving a long first
         byte [] fileSizeBytes = new byte[8];

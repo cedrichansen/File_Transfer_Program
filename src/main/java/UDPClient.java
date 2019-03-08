@@ -25,7 +25,7 @@ public class UDPClient {
 
     public void sendFile(String filePath) throws IOException {
 
-        filePath = System.getProperty("user.home") + filePath;
+        filePath = filePath.replace("~", System.getProperty("user.home"));
 
         long fileSizeL = (new File(filePath).length());
 

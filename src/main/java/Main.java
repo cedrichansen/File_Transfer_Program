@@ -90,20 +90,17 @@ public class Main {
         } else if (role == 2) {
 
             try {
-                printExternalIP();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
-            try {
                 UDPServer server = new UDPServer(PORT);
                 boolean result = server.acceptFile(getInput("Enter the destination filepath"));
+                printExternalIP();
                 server.close();
 
 
             } catch (SocketException e) {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
 
