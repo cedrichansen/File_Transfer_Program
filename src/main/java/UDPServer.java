@@ -69,8 +69,6 @@ public class UDPServer {
                     e.printStackTrace();
                 }
 
-
-
                 System.arraycopy(fileDataBuf, 0, fileData, i*Main.PACKET_SIZE, fileDataBuf.length);
 
             } else {
@@ -109,6 +107,10 @@ public class UDPServer {
 
         return true;
     }
+
+
+
+    public void receivePacket()
 
 
     public void close() {
