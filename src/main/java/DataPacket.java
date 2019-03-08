@@ -4,15 +4,18 @@ public class DataPacket {
 
         /*
 
-     2 bytes     string    1 byte     string   1 byte
-      ------------------------------------------------
-     | Opcode |  Filename  |   0  |    Mode    |   0  |
-      ------------------------------------------------
+
+        Some Modifications have been made from the original version of tftp. 
+
+     2 bytes   string (128 bytes)   
+      -----------------------
+     | Opcode |  Filename   | 
+      -----------------------
 
              Figure 5-1: RRQ/WRQ packet
 
 
-       2 bytes     2 bytes      n bytes
+       2 bytes     4 bytes   512 bytes MAX
        ----------------------------------
       | Opcode |   Block #  |   Data     |
        ----------------------------------
@@ -21,7 +24,7 @@ public class DataPacket {
 
 
 
-         2 bytes     2 bytes
+         2 bytes     4 bytes
          ---------------------
         | Opcode |   Block #  |
          ---------------------
@@ -29,10 +32,10 @@ public class DataPacket {
           Figure 5-3: ACK packet
 
 
-       2 bytes     2 bytes      string    1 byte
-       -----------------------------------------
-      | Opcode |  ErrorCode |   ErrMsg   |   0  |
-       -----------------------------------------
+       2 bytes     2 bytes      string(128 bytes)   
+       ----------------------------------------------
+      | Opcode |  ErrorCode |         ErrMsg        |
+       ----------------------------------------------
 
          Figure 5-4: ERROR packet
 
@@ -51,13 +54,25 @@ public class DataPacket {
 
 
     //OpCodes to be used
-    static short RRQ = 1;
-    static short WRQ = 2;
-    static short DATA = 3;
-    static short ACK = 4;
-    static short ERROR = 5;
+    final static short RRQ = 1;
+    final static short WRQ = 2;
+    final static short DATA = 3;
+    final static short ACK = 4;
+    final static short ERROR = 5;
 
-    
+
+    //Constant values for packet sizes
+    final static int RRQSIZE = 130;
+    final static int ACKSIZE = 6;
+    final static int ERRSIZE = 132;
+
+    //max data size for a data packet is 518, but the final packet will be smaller
+    final static int DATASIZE = 518;
+     
+
+
+
+
     // used for RRQ/WRQ packet AND Error packet
     public DataPacket(short opCode, String messageStr) {
         this.message = new byte [128];
@@ -67,19 +82,53 @@ public class DataPacket {
 
 
     //used to send data
-    public DataPacket(short opCode, short blockNum, byte [] data) {
+    public DataPacket(short opCode, int blockNum, byte [] data) {
         this.opCode = convertShortToByteArray(opCode);
-        this.blockNum = convertShortToByteArray(blockNum);
+        this.blockNum = convertIntToByteArray(blockNum);
         this.data = data;
     }
 
     //used for ACK's
-    public DataPacket(short opCode, short blockNum) {
+    public DataPacket(short opCode, int blockNum) {
         this.opCode = convertShortToByteArray(opCode);
-        this.blockNum = convertShortToByteArray(blockNum);
+        this.blockNum = convertIntToByteArray(blockNum);
     }
 
 
+
+
+
+    public static DataPacket rrqPacket(String message) {
+        return new DataPacket(RRQ, message);
+    }
+
+    public static DataPacket wrqPacket(String message) {
+        return new DataPacket(WRQ, message);
+    }
+
+    public static DataPacket ackPacket(int blockNum) {
+        return new DataPacket(ACK, blockNum);
+    }
+
+    public static DataPacket dataPacket(int blockNum, byte [] data) {
+        return new DataPacket(DATA, blockNum, data);
+    }
+
+    public static DataPacket errPacket(String message) {
+        return new DataPacket(ERROR, message);
+    }
+
+
+
+
+
+
+
+    public static byte [] convertIntToByteArray(int value) {
+        ByteBuffer buffer = ByteBuffer.allocate(4); 
+        buffer.putInt(value); 
+        return buffer.array();
+    }
     public static byte[] convertShortToByteArray(short value) {
         byte[] bytes = new byte[2];
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
@@ -87,6 +136,11 @@ public class DataPacket {
         return buffer.array();
     }
 
+
+
+
+
+    
     public byte [] getBytes() {
 
         byte [] packetBytes;

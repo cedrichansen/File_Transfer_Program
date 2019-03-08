@@ -14,12 +14,11 @@ public class UDPServer {
     String FILE_LOCATION;
 
 
-
     public UDPServer(int port) throws SocketException {
         socket = new DatagramSocket(port);
     }
 
-
+    
     public boolean acceptFile(String filePath) throws FileNotFoundException {
 
         FILE_LOCATION = filePath.replace("~", System.getProperty("user.home"));
@@ -37,6 +36,7 @@ public class UDPServer {
             socket.send(fileSizePacket);
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
 
         byte [] fileData = new byte [(int)fileSize];
@@ -45,6 +45,7 @@ public class UDPServer {
             fileBeingReceived.createNewFile();
         } catch (IOException e) {
             System.out.println("Filepath is invalid... Please try again");
+            return false;
         } 
         FileOutputStream fos = new FileOutputStream(fileBeingReceived, false);
         int numPackets = UDPClient.roundUp(fileData.length , Main.PACKET_SIZE);
@@ -61,7 +62,7 @@ public class UDPServer {
                 DatagramPacket data = new DatagramPacket(fileDataBuf, fileDataBuf.length);
                 try {
                     socket.receive(data);
-                    //respond to the client by echoing the data
+                    //respond to the client by sending 1 byte reply
                     byte [] respArr = new byte [1];
                     respArr[0] = (byte)1;
                     DatagramPacket resp = new DatagramPacket(respArr, respArr.length, data.getAddress(), data.getPort());
@@ -101,6 +102,7 @@ public class UDPServer {
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
         pb.stop();
 
