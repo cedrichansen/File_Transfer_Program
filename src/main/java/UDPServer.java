@@ -60,7 +60,10 @@ public class UDPServer {
                 try {
                     socket.receive(data);
                     //respond to the client by echoing the data
-                    socket.send(data);
+                    byte [] respArr = new byte [1];
+                    respArr[0] = (byte)1;
+                    DatagramPacket resp = new DatagramPacket(respArr, respArr.length, data.getAddress(), data.getPort());
+                    socket.send(resp);
 
                 } catch (IOException e) {
                     e.printStackTrace();
