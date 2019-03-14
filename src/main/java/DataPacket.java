@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.nio.ByteBuffer;
 
 public class DataPacket {
@@ -43,8 +44,8 @@ public class DataPacket {
      */
 
     byte [] data;
-    byte [] opCode;
-    byte [] blockNum;
+    short opCode;
+    int blockNum;
 
     //128 will be max size (in chars) for filename AND errMessage strings
     byte [] message;
@@ -60,63 +61,211 @@ public class DataPacket {
     final static short ACK = 4;
     final static short ERROR = 5;
 
+    //sizes for various fields in the packets
+    final static short OPCODESIZE = 2;
+    final static short FILENAMESIZE = 128;
+    final static short BLOCKNUMSIZE = 4;
+    final static short ERRCODESIZE = 2;
+    final static short ERRMESSAGESIZE = 128;
+    final static short DATASIZE = 512;
+
 
     //Constant values for packet sizes
-    final static int RRQSIZE = 130;
-    final static int ACKSIZE = 6;
-    final static int ERRSIZE = 132;
+    final static int RRQ_PACKET_SIZE = OPCODESIZE + FILENAMESIZE;
+    final static int WRQ_PACKET_SIZE = OPCODESIZE + FILENAMESIZE;
+    final static int ACKSIZE_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE;
+    final static int ERRSIZE_PACKET_SIZE = OPCODESIZE + ERRCODESIZE + ERRMESSAGESIZE;
+    final static int DATA_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + DATASIZE;
 
-    //max data size for a data packet is 518, but the final packet will be smaller
-    final static int DATASIZE = 518;
+    //Data packets are the biggest of all the types of Datapackets
+    final static int MAXDATASIZE=DATA_PACKET_SIZE;
      
-
-
 
 
     // used for RRQ/WRQ packet AND Error packet
     public DataPacket(short opCode, String messageStr) {
         this.message = new byte [128];
-        this.opCode = convertShortToByteArray(opCode);
+        this.opCode = opCode;
         System.arraycopy(messageStr.getBytes(), 0, this.message, 0, messageStr.getBytes().length);
     }
 
 
     //used to send data
     public DataPacket(short opCode, int blockNum, byte [] data) {
-        this.opCode = convertShortToByteArray(opCode);
-        this.blockNum = convertIntToByteArray(blockNum);
+        this.opCode = opCode;
+        this.blockNum = blockNum;
         this.data = data;
     }
 
     //used for ACK's
     public DataPacket(short opCode, int blockNum) {
-        this.opCode = convertShortToByteArray(opCode);
-        this.blockNum = convertIntToByteArray(blockNum);
+        this.opCode = opCode;
+        this.blockNum = blockNum;
     }
 
 
 
 
 
-    public static DataPacket rrqPacket(String message) {
+    public static DataPacket createRrqPacket(String message) {
         return new DataPacket(RRQ, message);
     }
 
-    public static DataPacket wrqPacket(String message) {
+    public static DataPacket createWrqPacket(String message) {
         return new DataPacket(WRQ, message);
     }
 
-    public static DataPacket ackPacket(int blockNum) {
+    public static DataPacket createAckPacket(int blockNum) {
         return new DataPacket(ACK, blockNum);
     }
 
-    public static DataPacket dataPacket(int blockNum, byte [] data) {
+    public static DataPacket createDataPacket(int blockNum, byte [] data) {
         return new DataPacket(DATA, blockNum, data);
     }
 
-    public static DataPacket errPacket(String message) {
+    public static DataPacket createErrPacket(String message) {
         return new DataPacket(ERROR, message);
     }
+
+
+
+    //this function is used to read an incoming byte [] and extract the appropriate packet data
+    public static DataPacket readPacket(byte [] bytes) {
+
+        ByteBuffer bb = ByteBuffer.allocate(MAXDATASIZE);
+        bb.put(bytes[0]);
+        bb.put(bytes[0]);
+
+        short opcode = bb.getShort(0);
+
+        if (opcode == RRQ) {
+            return recoverRRQPacket(bytes);
+        } else if (opcode == WRQ) {
+            return recoverWRQPacket(bytes);
+        } else if (opcode == DATA) {
+            return recoverDATAPacket(bytes);
+        } else if (opcode == ACK) {
+            return recoverACKPacket(bytes);
+        } else if (opcode == ERROR) {
+            return recoverERRORPacket(bytes);
+        }
+
+        return createErrPacket("Something went wrong with reading the packets...");
+
+    }
+
+    public static DataPacket recoverRRQPacket(byte [] bytes) {
+
+        ByteBuffer bb = ByteBuffer.allocate(RRQ_PACKET_SIZE);
+        bb.put(bytes,OPCODESIZE, FILENAMESIZE);
+        byte [] fileNameBytes = bb.array();
+        String fileName = new String(fileNameBytes);
+        return createRrqPacket(fileName);
+
+    }
+
+    public static DataPacket recoverWRQPacket(byte [] bytes) {
+
+        ByteBuffer bb = ByteBuffer.allocate(WRQ_PACKET_SIZE);
+        bb.put(bytes, OPCODESIZE, FILENAMESIZE);
+        byte [] fileNameBytes = bb.array();
+        String fileName = new String(fileNameBytes);
+        return createWrqPacket(fileName);
+    }
+
+    public static DataPacket recoverDATAPacket(byte [] bytes) {
+
+        ByteBuffer bb = ByteBuffer.allocate(DATA_PACKET_SIZE);
+        bb.put(bytes, OPCODESIZE, BLOCKNUMSIZE);
+        int blockNum = bb.getInt();
+        bb.clear();
+        byte [] data = new byte[DATASIZE];
+        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, data, 0,DATASIZE);
+        return createDataPacket(blockNum, data);
+
+    }
+
+    public static DataPacket recoverACKPacket(byte [] bytes) {
+        ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
+        bb.put(bytes, OPCODESIZE, BLOCKNUMSIZE);
+        int blockNum = bb.getInt();
+        bb.clear();
+        return createAckPacket(blockNum);
+
+    }
+
+    public static DataPacket recoverERRORPacket(byte [] bytes) {
+        ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
+        bb.put(bytes, OPCODESIZE, ERRCODESIZE);
+        //Currently not using errCode for anything in this project, but could be implemented if very robust
+        //protocol is implemented
+        short errCode = bb.getShort();
+        bb.clear();
+        bb.put(bytes, OPCODESIZE + ERRCODESIZE, ERRMESSAGESIZE);
+        byte [] errorMessageBytes = bb.array();
+        String errorMessage = new String(errorMessageBytes);
+        return createErrPacket(errorMessage);
+
+    }
+
+
+
+
+
+
+
+
+
+
+    //this function is used to get the correct byte [] representation for the current packet
+    public byte [] getBytes() {
+
+        if (this.opCode == RRQ) {
+            return this.getRRQBytes();
+        } else if (this.opCode == WRQ) {
+            return this.getWRQBytes();
+        } else if (this.opCode == DATA) {
+            return this.getDataBytes();
+        } else if (this.opCode == ACK) {
+            return this.getAckBytes();
+        } else if (this.opCode == ERROR) {
+            return this.getErrorBytes();
+        }
+
+        //should never reach this
+        return null;
+    }
+
+
+    
+    //TODO: Implement following functions
+
+    public byte [] getRRQBytes(){
+        byte [] rrqBytes = new byte[RRQ_PACKET_SIZE];
+
+        return rrqBytes;
+    }
+
+    public byte [] getWRQBytes() {
+        byte [] wrqBytes = new byte[WRQ_PACKET_SIZE];
+        return wrqBytes;
+    }
+
+    public byte [] getDataBytes() {
+        byte [] dataBytes = new byte[DATA_PACKET_SIZE];
+        return dataBytes;
+    }
+
+    public byte [] getAckBytes() {
+        byte [] ackBytes = new byte[ACKSIZE_PACKET_SIZE];
+        return ackBytes;
+    }
+
+    public byte [] getErrorBytes() {
+        byte [] errorBytes = new byte[ERRSIZE_PACKET_SIZE];
+        return errorBytes;
+    }
+
 
 
 
@@ -125,8 +274,8 @@ public class DataPacket {
 
 
     public static byte [] convertIntToByteArray(int value) {
-        ByteBuffer buffer = ByteBuffer.allocate(4); 
-        buffer.putInt(value); 
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(value);
         return buffer.array();
     }
     public static byte[] convertShortToByteArray(short value) {
@@ -134,27 +283,6 @@ public class DataPacket {
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
         buffer.putShort(value);
         return buffer.array();
-    }
-
-
-
-
-
-    
-    public byte [] getBytes() {
-
-        byte [] packetBytes;
-
-        if (data != null) {
-            packetBytes = new byte [opCode.length + blockNum.length + data.length];
-            System.arraycopy(data, 0, packetBytes, blockNum.length + opCode.length, data.length);
-        } else {
-            packetBytes = new byte[opCode.length + blockNum.length];
-        }
-
-        System.arraycopy(opCode, 0, packetBytes, 0, opCode.length);
-        System.arraycopy(blockNum, 0, packetBytes, opCode.length, blockNum.length);
-        return packetBytes;
     }
 
 
