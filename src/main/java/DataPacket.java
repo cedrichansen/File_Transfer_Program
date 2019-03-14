@@ -1,4 +1,3 @@
-import javax.xml.crypto.Data;
 import java.nio.ByteBuffer;
 
 public class DataPacket {
@@ -196,11 +195,11 @@ public class DataPacket {
 
     public static DataPacket recoverERRORPacket(byte [] bytes) {
         ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
-        bb.put(bytes, OPCODESIZE, ERRCODESIZE);
+        //bb.put(bytes, OPCODESIZE, ERRCODESIZE);
         //Currently not using errCode for anything in this project, but could be implemented if very robust
         //protocol is implemented
-        short errCode = bb.getShort();
-        bb.clear();
+        //short errCode = bb.getShort();
+        //bb.clear();
         bb.put(bytes, OPCODESIZE + ERRCODESIZE, ERRMESSAGESIZE);
         byte [] errorMessageBytes = bb.array();
         String errorMessage = new String(errorMessageBytes);
@@ -237,53 +236,51 @@ public class DataPacket {
     }
 
 
-    
-    //TODO: Implement following functions
+
 
     public byte [] getRRQBytes(){
-        byte [] rrqBytes = new byte[RRQ_PACKET_SIZE];
-
-        return rrqBytes;
+        ByteBuffer bb = ByteBuffer.allocate(RRQ_PACKET_SIZE);
+        bb.putShort(this.opCode);
+        bb.put(this.message);
+        bb.flip();
+        return bb.array();
     }
 
     public byte [] getWRQBytes() {
-        byte [] wrqBytes = new byte[WRQ_PACKET_SIZE];
-        return wrqBytes;
+        ByteBuffer bb = ByteBuffer.allocate(WRQ_PACKET_SIZE);
+        bb.putShort(this.opCode);
+        bb.put(this.message);
+        bb.flip();
+        return bb.array();
     }
 
     public byte [] getDataBytes() {
-        byte [] dataBytes = new byte[DATA_PACKET_SIZE];
-        return dataBytes;
+        ByteBuffer bb = ByteBuffer.allocate(DATA_PACKET_SIZE);
+        bb.putShort(this.opCode);
+        bb.putInt(this.blockNum);
+        bb.put(this.data);
+        bb.flip();
+        return bb.array();
+
     }
 
     public byte [] getAckBytes() {
-        byte [] ackBytes = new byte[ACKSIZE_PACKET_SIZE];
-        return ackBytes;
+        ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
+        bb.putShort(this.opCode);
+        bb.putInt(this.blockNum);
+        bb.flip();
+        return bb.array();
     }
 
     public byte [] getErrorBytes() {
-        byte [] errorBytes = new byte[ERRSIZE_PACKET_SIZE];
-        return errorBytes;
+        ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
+        bb.putShort(this.opCode);
+        bb.put(this.message);
+        bb.flip();
+        return bb.array();
     }
 
 
-
-
-
-
-
-
-    public static byte [] convertIntToByteArray(int value) {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(value);
-        return buffer.array();
-    }
-    public static byte[] convertShortToByteArray(short value) {
-        byte[] bytes = new byte[2];
-        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-        buffer.putShort(value);
-        return buffer.array();
-    }
 
 
 
