@@ -1,10 +1,13 @@
+import javax.xml.crypto.Data;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 
@@ -102,6 +105,78 @@ public class Main {
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
+
+        } else {
+            //Test Data packets
+
+
+            //checking rrq packets
+            DataPacket rrq = DataPacket.createRrqPacket("This is where a filename would go ");
+            System.out.println(rrq.toString());
+            byte [] rrqBytes = rrq.getBytes();
+
+            rrq = DataPacket.readPacket(rrqBytes);
+            System.out.println(rrq.toString());
+
+
+            //checking wrq packets
+            DataPacket wrq = DataPacket.createWrqPacket("This is wrq stuff");
+            System.out.println(wrq.toString());
+            byte [] wrqBytes = wrq.getBytes();
+            wrq = DataPacket.readPacket(wrqBytes);
+            System.out.println(wrq.toString());
+
+
+
+            //checking data packets
+            byte [] dataBytes = new byte[DataPacket.DATASIZE];
+            Arrays.fill(dataBytes, (byte)1);
+            dataBytes[19] = (byte)3;
+
+            DataPacket data = DataPacket.createDataPacket(12, dataBytes);
+            System.out.println(data.toString());
+            byte [] readDataBytes = data.getBytes();
+            data = DataPacket.readPacket(readDataBytes);
+            System.out.println(data.toString());
+
+            boolean difference = false;
+            for (int i = 0; i<data.data.length; i++){
+                if (data.data[i] != dataBytes[i]) {
+                    difference = true;
+                }
+            }
+
+            if (difference) {
+                System.out.println("Bytes not copied properly");
+            } else {
+                System.out.println("Bytes copied properly!");
+            }
+
+            //AckPacket stuff
+            DataPacket ackPacket = DataPacket.createAckPacket(14);
+            System.out.println(ackPacket.toString());
+
+            byte [] ackBytes = ackPacket.getBytes();
+            ackPacket = DataPacket.readPacket(ackBytes);
+            System.out.println(ackPacket.toString());
+
+
+            //error Packet stuff
+            DataPacket errPacket = DataPacket.createErrPacket("sample error packet");
+            System.out.println(errPacket.toString());
+
+            byte [] errBytes = errPacket.getBytes();
+            errPacket = DataPacket.readPacket(errBytes);
+            System.out.println(errPacket.toString());
+
+
+
+
+
+
+
+
+
 
         }
 

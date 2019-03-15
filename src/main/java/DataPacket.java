@@ -48,6 +48,7 @@ public class DataPacket {
 
     //128 will be max size (in chars) for filename AND errMessage strings
     byte [] message;
+    String messageStr;
     // only supported mode will be binary (octect) transmission. This will be default
     //byte [] mode;
 
@@ -82,22 +83,23 @@ public class DataPacket {
 
 
     // used for RRQ/WRQ packet AND Error packet
-    public DataPacket(short opCode, String messageStr) {
+    private DataPacket(short opCode, String messageStr) {
         this.message = new byte [128];
         this.opCode = opCode;
         System.arraycopy(messageStr.getBytes(), 0, this.message, 0, messageStr.getBytes().length);
+        this.messageStr = trimTrailingZeros(this.message);
     }
 
 
     //used to send data
-    public DataPacket(short opCode, int blockNum, byte [] data) {
+    private DataPacket(short opCode, int blockNum, byte [] data) {
         this.opCode = opCode;
         this.blockNum = blockNum;
         this.data = data;
     }
 
     //used for ACK's
-    public DataPacket(short opCode, int blockNum) {
+    private DataPacket(short opCode, int blockNum) {
         this.opCode = opCode;
         this.blockNum = blockNum;
     }
@@ -132,8 +134,7 @@ public class DataPacket {
     public static DataPacket readPacket(byte [] bytes) {
 
         ByteBuffer bb = ByteBuffer.allocate(MAXDATASIZE);
-        bb.put(bytes[0]);
-        bb.put(bytes[0]);
+        bb.put(bytes);
 
         short opcode = bb.getShort(0);
 
@@ -153,56 +154,57 @@ public class DataPacket {
 
     }
 
-    public static DataPacket recoverRRQPacket(byte [] bytes) {
+    private static DataPacket recoverRRQPacket(byte [] bytes) {
 
         ByteBuffer bb = ByteBuffer.allocate(RRQ_PACKET_SIZE);
-        bb.put(bytes,OPCODESIZE, FILENAMESIZE);
-        byte [] fileNameBytes = bb.array();
+        bb.put(bytes);
+        //short opCode = bb.getShort(0);
+        byte [] fileNameBytes = new byte[FILENAMESIZE];
+        System.arraycopy(bytes, OPCODESIZE, fileNameBytes, 0, FILENAMESIZE);
         String fileName = new String(fileNameBytes);
         return createRrqPacket(fileName);
 
     }
 
-    public static DataPacket recoverWRQPacket(byte [] bytes) {
+    private static DataPacket recoverWRQPacket(byte [] bytes) {
 
         ByteBuffer bb = ByteBuffer.allocate(WRQ_PACKET_SIZE);
-        bb.put(bytes, OPCODESIZE, FILENAMESIZE);
-        byte [] fileNameBytes = bb.array();
+        bb.put(bytes);
+        //short opCode = bb.getShort(0);
+        byte [] fileNameBytes = new byte[FILENAMESIZE];
+        System.arraycopy(bytes, OPCODESIZE, fileNameBytes, 0, FILENAMESIZE);
         String fileName = new String(fileNameBytes);
         return createWrqPacket(fileName);
     }
 
-    public static DataPacket recoverDATAPacket(byte [] bytes) {
+    private static DataPacket recoverDATAPacket(byte [] bytes) {
 
         ByteBuffer bb = ByteBuffer.allocate(DATA_PACKET_SIZE);
-        bb.put(bytes, OPCODESIZE, BLOCKNUMSIZE);
-        int blockNum = bb.getInt();
-        bb.clear();
-        byte [] data = new byte[DATASIZE];
-        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, data, 0,DATASIZE);
-        return createDataPacket(blockNum, data);
+        bb.put(bytes);
+        //short opCode = bb.getShort(0);
+        int blockNum = bb.getInt(OPCODESIZE);
+        byte [] dataBytes = new byte[DATASIZE];
+        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, dataBytes, 0, DATASIZE);
+        return createDataPacket(blockNum, dataBytes);
 
     }
 
-    public static DataPacket recoverACKPacket(byte [] bytes) {
+    private static DataPacket recoverACKPacket(byte [] bytes) {
         ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
-        bb.put(bytes, OPCODESIZE, BLOCKNUMSIZE);
-        int blockNum = bb.getInt();
-        bb.clear();
+        bb.put(bytes);
+        //short opCode = bb.getShort(0);
+        int blockNum = bb.getInt(OPCODESIZE);
         return createAckPacket(blockNum);
 
     }
 
-    public static DataPacket recoverERRORPacket(byte [] bytes) {
+    private static DataPacket recoverERRORPacket(byte [] bytes) {
         ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
-        //bb.put(bytes, OPCODESIZE, ERRCODESIZE);
-        //Currently not using errCode for anything in this project, but could be implemented if very robust
-        //protocol is implemented
-        //short errCode = bb.getShort();
-        //bb.clear();
-        bb.put(bytes, OPCODESIZE + ERRCODESIZE, ERRMESSAGESIZE);
-        byte [] errorMessageBytes = bb.array();
-        String errorMessage = new String(errorMessageBytes);
+        bb.put(bytes);
+        //short opCode = bb.getShort(0);
+        byte [] errorMessageName = new byte[FILENAMESIZE];
+        System.arraycopy(bytes, OPCODESIZE, errorMessageName, 0, FILENAMESIZE);
+        String errorMessage = new String(errorMessageName);
         return createErrPacket(errorMessage);
 
     }
@@ -238,7 +240,7 @@ public class DataPacket {
 
 
 
-    public byte [] getRRQBytes(){
+    private byte [] getRRQBytes(){
         ByteBuffer bb = ByteBuffer.allocate(RRQ_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
@@ -246,7 +248,7 @@ public class DataPacket {
         return bb.array();
     }
 
-    public byte [] getWRQBytes() {
+    private byte [] getWRQBytes() {
         ByteBuffer bb = ByteBuffer.allocate(WRQ_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
@@ -254,7 +256,7 @@ public class DataPacket {
         return bb.array();
     }
 
-    public byte [] getDataBytes() {
+    private byte [] getDataBytes() {
         ByteBuffer bb = ByteBuffer.allocate(DATA_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
@@ -264,7 +266,7 @@ public class DataPacket {
 
     }
 
-    public byte [] getAckBytes() {
+    private byte [] getAckBytes() {
         ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
@@ -272,7 +274,7 @@ public class DataPacket {
         return bb.array();
     }
 
-    public byte [] getErrorBytes() {
+    private byte [] getErrorBytes() {
         ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
@@ -281,7 +283,27 @@ public class DataPacket {
     }
 
 
+    private String trimTrailingZeros(byte [] messageBytes) {
+
+        int count =0;
+        for (;count<messageBytes.length; count++) {
+            if (messageBytes[count] == 0) {
+                break;
+            }
+        }
+
+        byte [] trimmedFileName = new byte [count];
+
+        System.arraycopy(messageBytes, 0, trimmedFileName, 0, count);
+
+        return new String(trimmedFileName);
+
+    }
 
 
 
+    @Override
+    public String toString() {
+        return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " Message str: " + this.messageStr;
+    }
 }
