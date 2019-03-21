@@ -69,8 +69,12 @@ public class Main {
 
 
         printFlags();
-
-        int role = Integer.parseInt(getInput("Type 1 for client, 2 for server"));
+        int role;
+        try {
+            role = Integer.parseInt(getInput("Type 1 for client, 2 for server"));
+        } catch (NumberFormatException e) {
+            role = 0;
+        }
 
 
         if (role == 1) {
@@ -169,15 +173,7 @@ public class Main {
             errPacket = DataPacket.readPacket(errBytes);
             System.out.println(errPacket.toString());
 
-
-
-
-
-
-
-
-
-
+            
         }
 
 
