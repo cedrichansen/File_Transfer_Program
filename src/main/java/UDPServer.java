@@ -31,7 +31,7 @@ public class UDPServer {
             fileLocation = fileLocation+clientrequest.messageStr;
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Cannot properly receive WRQ packet");
+            System.out.println("Cannot properly receive WRQ packet properly");
         }
 
         ArrayList<Byte> fileBytes = new ArrayList<>();
@@ -115,15 +115,24 @@ public class UDPServer {
         //prepare to receive a packet of data
         byte [] dataBytes = new byte [DataPacket.DATA_PACKET_SIZE];
         DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
+
         socket.receive(msg);
 
         //create a data packet from which to extract the fileData
         DataPacket data = DataPacket.readPacket(msg.getData());
 
-        //create a reply packet, and send back to client
-        DataPacket ack = DataPacket.createAckPacket(data.blockNum);
-        DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
-        socket.send(ackPacket);
+        if (data.opCode == DataPacket.DATA) {
+            //Receiving data, create an ack packet, and send back to client
+            DataPacket ack = DataPacket.createAckPacket(data.blockNum);
+            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
+            socket.send(ackPacket);
+        } else if (data.opCode == DataPacket.WRQ){
+            //someone is trying to write data... we must reply with an ack with blockNum = 0;
+            DataPacket ack = DataPacket.createAckPacket(0);
+            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
+            socket.send(ackPacket);
+        }
+
         return data;
     }
 
