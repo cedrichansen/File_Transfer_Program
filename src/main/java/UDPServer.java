@@ -1,5 +1,3 @@
-import me.tongfei.progressbar.ProgressBar;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Random;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.core.ZipFile;
 
 
 public class UDPServer {
@@ -197,7 +197,18 @@ public class UDPServer {
             return false;
         }
 
-        System.out.println("\nFile written successfully! File is located at: " + filePath);
+        if (filePath.contains(".zip")) {
+            try {
+                ZipFile zip = new ZipFile(filePath);
+                zip.extractAll(filePath.replace(".zip",""));
+
+            } catch (ZipException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        System.out.println("\nFile written successfully! File is located at: " + filePath.replace(".zip",""));
 
 
         return true;

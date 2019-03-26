@@ -1,12 +1,13 @@
 import me.tongfei.progressbar.ProgressBar;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class UDPClient {
 
@@ -14,6 +15,8 @@ public class UDPClient {
     DatagramSocket socket;
     InetAddress address;
     int port;
+
+    static List<String> filesListInDir = new ArrayList<String>();
 
 
     public UDPClient(String ip, int port) throws UnknownHostException, SocketException {
@@ -26,6 +29,23 @@ public class UDPClient {
     public void sendFile(String filePath) throws IOException {
 
         filePath = filePath.replace("~", System.getProperty("user.home"));
+
+
+        File f = new File(filePath);
+
+        if (f.isDirectory()) {
+            //zip file
+
+            if (filePath.charAt(filePath.length()-1) == '/') {
+                filePath = filePath.substring(0, filePath.length());
+            }
+
+            String zipFilePath = filePath + ".zip";
+            filePath = zipFilePath;
+            zipDirectory(f, zipFilePath);
+        }
+
+
         String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
 
 
@@ -75,7 +95,14 @@ public class UDPClient {
 
         pb.stop();
 
+
+        if (filePath.contains(".zip")) {
+            System.out.println("Removing temporary zip file");
+            (new File(filePath)).delete();
+        }
+
         System.out.println("Successfully sent the file");
+
 
     }
 
@@ -133,5 +160,45 @@ public class UDPClient {
         return buffer.array();
     }
 
+
+
+
+    private static void zipDirectory(File dir, String zipDirName) {
+        try {
+            populateFilesList(dir);
+            //now zip files one by one
+            //create ZipOutputStream to write to the zip file
+            FileOutputStream fos = new FileOutputStream(zipDirName);
+            ZipOutputStream zos = new ZipOutputStream(fos);
+            for(String filePath : filesListInDir){
+                System.out.println("Zipping "+filePath);
+                //for ZipEntry we need to keep only relative file path, so we used substring on absolute path
+                ZipEntry ze = new ZipEntry(filePath.substring(dir.getAbsolutePath().length()+1, filePath.length()));
+                zos.putNextEntry(ze);
+                //read the file and write to ZipOutputStream
+                FileInputStream fis = new FileInputStream(filePath);
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = fis.read(buffer)) > 0) {
+                    zos.write(buffer, 0, len);
+                }
+                zos.closeEntry();
+                fis.close();
+            }
+            zos.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void populateFilesList(File dir) throws IOException {
+        File[] files = dir.listFiles();
+        for(File file : files){
+            if(file.isFile()) filesListInDir.add(file.getAbsolutePath());
+            else populateFilesList(file);
+        }
+    }
 
 }
