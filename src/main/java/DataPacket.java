@@ -184,8 +184,8 @@ public class DataPacket {
         bb.put(bytes);
         //short opCode = bb.getShort(0);
         int blockNum = bb.getInt(OPCODESIZE);
-        byte [] dataBytes = new byte[DATASIZE];
-        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, dataBytes, 0, DATASIZE);
+        byte [] dataBytes = new byte[bytes.length - (OPCODESIZE+ BLOCKNUMSIZE) ];
+        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, dataBytes, 0, dataBytes.length);
         return createDataPacket(blockNum, dataBytes);
 
     }
