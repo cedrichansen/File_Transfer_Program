@@ -144,11 +144,6 @@ public class UDPServer {
             //create a data packet from which to extract the fileData
             DataPacket data = DataPacket.readPacket(receivedBytes);
 
-            if (receivedBytes.length < DataPacket.DATASIZE) {
-                System.out.println("Last packet: " + receivedBytes.length);
-            }
-
-
             //Receiving data, create an ack packet, and send back to client
             DataPacket ack = DataPacket.createAckPacket(data.blockNum);
             byte [] ackBytes = ack.getBytes();
@@ -198,11 +193,5 @@ public class UDPServer {
         return true;
     }
 
-    public long bytesToLong(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(bytes);
-        buffer.flip();//need flip
-        return buffer.getLong();
-    }
 
 }
