@@ -35,6 +35,8 @@ public class UDPClient {
         DataPacket WRQ_Packet = DataPacket.createWrqPacket(fileName);
         sendPacket(WRQ_Packet.getBytes(), 0);
 
+        System.out.println("Successfully connected!");
+
         //create byte container to send the file
         //size of the buffer is equivalent to the size of the file in bytes
         byte[] fileData = new byte[(int) (new File(filePath).length())];

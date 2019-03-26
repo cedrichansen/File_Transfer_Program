@@ -35,6 +35,8 @@ public class UDPServer {
             System.out.println("Cannot properly receive WRQ packet properly");
         }
 
+        System.out.println("Connection established!");
+
         ArrayList<Byte> fileBytes = new ArrayList<>();
 
         DataPacket lastPacketReceived = DataPacket.createErrPacket("DataPacket never initialized");
@@ -76,7 +78,7 @@ public class UDPServer {
 
 
                     //if its the last packet, break
-                    if (message.data[DataPacket.DATASIZE] == 0) {
+                    if (message.data[message.data.length - 1] == 0) {
                         //the data doesnt reach the end of the packet, so add the last packet
 
                         byte [] previousPacketData = lastPacketReceived.data;
