@@ -30,7 +30,7 @@ public class UDPServer {
         boolean receivedData = false;
 
         //while true. i is simply used as a counter for an eventual loading bar
-        for (int i=0; ; i++) {
+        for (int i = 0; ; i++) {
 
             try {
                 DataPacket message = receivePacket();
@@ -82,6 +82,9 @@ public class UDPServer {
                 e.printStackTrace();
                 return false;
             }
+
+
+            System.out.print("\rData Received: " + i);
 
         }
 

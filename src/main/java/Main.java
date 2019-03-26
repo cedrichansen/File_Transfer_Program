@@ -109,7 +109,10 @@ public class Main {
             }
 
         } else {
-            //Test Data packets
+            /*
+            This branch is PURELY FOR DEBUGGING/BASIC TESTING and will not be used in final program,
+            Will be removed upon assignment completion.
+             */
 
 
             //checking rrq packets
@@ -171,6 +174,15 @@ public class Main {
             errPacket = DataPacket.readPacket(errBytes);
             System.out.println(errPacket.toString());
 
+            for (int i = 0; i<100; i++) {
+                System.out.print("\rData Received: " + i);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    //should never happen.... This loop is purely for testing the print statement
+                    e.printStackTrace();
+                }
+            }
 
         }
 

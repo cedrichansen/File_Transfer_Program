@@ -1,3 +1,4 @@
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 public class DataPacket {
@@ -244,7 +245,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(RRQ_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
-        bb.flip();
+        ((Buffer)bb).flip();
         return bb.array();
     }
 
@@ -252,7 +253,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(WRQ_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
-        bb.flip();
+        ((Buffer)bb).flip();
         return bb.array();
     }
 
@@ -261,7 +262,7 @@ public class DataPacket {
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
         bb.put(this.data);
-        bb.flip();
+        ((Buffer)bb).flip();
         return bb.array();
 
     }
@@ -270,7 +271,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
-        bb.flip();
+        ((Buffer)bb).flip();
         return bb.array();
     }
 
@@ -278,7 +279,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(ERRSIZE_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.put(this.message);
-        bb.flip();
+        ((Buffer)bb).flip();
         return bb.array();
     }
 
