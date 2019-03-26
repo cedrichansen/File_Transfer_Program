@@ -30,6 +30,8 @@ public class UDPClient {
 
 
         //sending 0 as the blockNum for the WRQ is what is required by the TFTP protocol
+        // the 0 here never actually gets written or sent, but we check that the ack
+        // received is indeed a 0 (all done inside the method)
         DataPacket WRQ_Packet = DataPacket.createWrqPacket(fileName);
         sendPacket(WRQ_Packet.getBytes(), 0);
 
