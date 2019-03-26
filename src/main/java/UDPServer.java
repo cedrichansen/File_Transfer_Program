@@ -125,7 +125,8 @@ public class UDPServer {
 
             //someone is trying to write data... we must reply with an ack with blockNum = 0;
             DataPacket ack = DataPacket.createAckPacket(0);
-            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
+            byte [] ackBytes = ack.getBytes();
+            DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, msg.getAddress(), msg.getPort());
             socket.send(ackPacket);
 
             return data;
@@ -141,7 +142,8 @@ public class UDPServer {
 
             //Receiving data, create an ack packet, and send back to client
             DataPacket ack = DataPacket.createAckPacket(data.blockNum);
-            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
+            byte [] ackBytes = ack.getBytes();
+            DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, msg.getAddress(), msg.getPort());
             socket.send(ackPacket);
 
             return data;
