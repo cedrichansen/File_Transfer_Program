@@ -87,7 +87,8 @@ public class UDPServer {
                         for (byte b : previousPacketData) {
                             fileBytes.add(b);
                         }
-
+                        numPacketsProcessed++;
+                        System.out.print("\rData Received: " + numPacketsProcessed);
                         //done receiving data
                         break;
                     }
