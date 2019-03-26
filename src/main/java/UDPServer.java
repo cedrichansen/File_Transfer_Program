@@ -78,6 +78,8 @@ public class UDPServer {
                         if (message.data.length < DataPacket.DATASIZE) {
                             //the data doesnt reach the end of the packet, so add the last packet
 
+                            System.out.println("Receiving last packet");
+
                             previousPacketData = lastPacketReceived.data;
 
                             //add the data to files data
