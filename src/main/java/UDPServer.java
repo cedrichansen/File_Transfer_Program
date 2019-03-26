@@ -145,11 +145,15 @@ public class UDPServer {
             //message is less than 512 bytes
             int numDataBytes = msg.getLength();
             byte [] receivedBytes = new byte[numDataBytes];
-            System.arraycopy(dataBytes,0,receivedBytes,0, numDataBytes);
+            System.arraycopy(dataBytes,0 ,receivedBytes,0, numDataBytes);
 
             //create a data packet from which to extract the fileData
-            DataPacket data = DataPacket.readPacket(msg.getData());
-            data.data = receivedBytes;
+            DataPacket data = DataPacket.readPacket(receivedBytes);
+
+            if (receivedBytes.length < DataPacket.DATASIZE) {
+                System.out.println("Last packet: " + receivedBytes.length);
+            }
+
 
             //Receiving data, create an ack packet, and send back to client
             DataPacket ack = DataPacket.createAckPacket(data.blockNum);
