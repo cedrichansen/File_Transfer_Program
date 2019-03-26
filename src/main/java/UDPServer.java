@@ -75,15 +75,12 @@ public class UDPServer {
                         lastPacketReceived = message;
                         
                         //if its the last packet, break
-                        if (message.data.length < DataPacket.DATASIZE) {
+                        if (lastPacketReceived.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
                             //the data doesnt reach the end of the packet, so add the last packet
-
                             System.out.println("Receiving last packet");
 
-                            previousPacketData = lastPacketReceived.data;
-
                             //add the data to files data
-                            for (byte b : previousPacketData) {
+                            for (byte b : lastPacketReceived.data) {
                                 fileBytes.add(b);
                             }
                             numPacketsProcessed++;
@@ -111,7 +108,6 @@ public class UDPServer {
         }
 
         writeFile(fileLocation, fileBytesArr);
-
 
         return true;
     }
