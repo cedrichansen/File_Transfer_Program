@@ -25,7 +25,8 @@ public class UDPServer {
         System.out.println("Waiting for a connection...");
 
         try {
-            DataPacket clientrequest = receivePacket();
+            //try to receive a WRQ
+            DataPacket clientrequest = receivePacket(DataPacket.WRQ);
 
             //the message String here is the filepath
             fileLocation = fileLocation+clientrequest.messageStr;
@@ -46,7 +47,8 @@ public class UDPServer {
         while (true) {
 
             try {
-                DataPacket message = receivePacket();
+                //try to receive a dataPacket
+                DataPacket message = receivePacket(DataPacket.DATA);
 
                 if (message.opCode == DataPacket.DATA) {
 
@@ -111,29 +113,41 @@ public class UDPServer {
     }
 
 
-    public DataPacket receivePacket() throws IOException {
-        //prepare to receive a packet of data
-        byte [] dataBytes = new byte [DataPacket.DATA_PACKET_SIZE];
-        DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
+    public DataPacket receivePacket(short opCode) throws IOException {
 
-        socket.receive(msg);
+        if (opCode == DataPacket.WRQ) {
+            byte [] dataBytes = new byte [DataPacket.WRQ_PACKET_SIZE];
+            DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
+            socket.receive(msg);
 
-        //create a data packet from which to extract the fileData
-        DataPacket data = DataPacket.readPacket(msg.getData());
+            //create a data packet from which to extract the fileData
+            DataPacket data = DataPacket.readPacket(msg.getData());
 
-        if (data.opCode == DataPacket.DATA) {
-            //Receiving data, create an ack packet, and send back to client
-            DataPacket ack = DataPacket.createAckPacket(data.blockNum);
-            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
-            socket.send(ackPacket);
-        } else if (data.opCode == DataPacket.WRQ){
             //someone is trying to write data... we must reply with an ack with blockNum = 0;
             DataPacket ack = DataPacket.createAckPacket(0);
             DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
             socket.send(ackPacket);
+
+            return data;
+
+        } else {
+            //prepare to receive a packet of data
+            byte [] dataBytes = new byte [DataPacket.DATA_PACKET_SIZE];
+            DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
+            socket.receive(msg);
+
+            //create a data packet from which to extract the fileData
+            DataPacket data = DataPacket.readPacket(msg.getData());
+
+            //Receiving data, create an ack packet, and send back to client
+            DataPacket ack = DataPacket.createAckPacket(data.blockNum);
+            DatagramPacket ackPacket = new DatagramPacket(ack.data, ack.data.length, msg.getAddress(), msg.getPort());
+            socket.send(ackPacket);
+
+            return data;
         }
 
-        return data;
+
     }
 
 

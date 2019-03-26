@@ -18,7 +18,7 @@ public class UDPClient {
 
     public UDPClient(String ip, int port) throws UnknownHostException, SocketException {
         address = InetAddress.getByName(ip);
-        this.port = port;
+        this.port = port +1;
         socket = new DatagramSocket(this.port);
     }
 
