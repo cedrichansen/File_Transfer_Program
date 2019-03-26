@@ -141,8 +141,15 @@ public class UDPServer {
             DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
             socket.receive(msg);
 
+            //look at how much data was actually received... This is important because the last
+            //message is less than 512 bytes
+            int numDataBytes = msg.getLength();
+            byte [] receivedBytes = new byte[numDataBytes];
+            System.arraycopy(dataBytes,0,receivedBytes,0, numDataBytes);
+
             //create a data packet from which to extract the fileData
             DataPacket data = DataPacket.readPacket(msg.getData());
+            data.data = receivedBytes;
 
             //Receiving data, create an ack packet, and send back to client
             DataPacket ack = DataPacket.createAckPacket(data.blockNum);
