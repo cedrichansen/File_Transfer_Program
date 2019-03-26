@@ -10,16 +10,19 @@ the available flags are:
 
 one of the IPv flags
 
-* 4 : enables IPv4 Datagram packets
+* 4 : enables IPv4 Datagram packets (default)
 
 * 6 : enables IPv6 Datagram packets
 
 
 one of the ack types
 
+* -s : activates sequential acks used in TFTP (default)
+
 * -w : activates TCP-style sliding windows 
 
-* -s : activates sequential acks used in TFTP
+
+Server must activate the following flag as a command line argument
 
 pretending to drop 1% of packets
 

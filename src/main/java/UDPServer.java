@@ -7,6 +7,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 
 public class UDPServer {
@@ -143,6 +144,15 @@ public class UDPServer {
 
             //create a data packet from which to extract the fileData
             DataPacket data = DataPacket.readPacket(receivedBytes);
+
+
+            if (Main.DROP_PACKETS) {
+                Random r = new Random();
+                if (r.nextFloat() < Main.DROP_PACKET_RATE) {
+                    //exit preemptively. By never sending ack, client must resend the data
+                    return data;
+                }
+            }
 
             //Receiving data, create an ack packet, and send back to client
             DataPacket ack = DataPacket.createAckPacket(data.blockNum);

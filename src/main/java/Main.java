@@ -45,8 +45,8 @@ https://tools.ietf.org/html/rfc1350
 public class Main {
 
     //toggle IPv4 vs IPv6. If no argument is provided, IPv6 is used by default
-    public static boolean IPv4 = false;
-    public static boolean IPV6 = true;
+    public static boolean IPv4 = true;
+    public static boolean IPV6 = false;
 
     //toggle TCP-style sliding windows vs sequential acks used in TFTP. If no argument is provided, Sequential acks will be default
     public static boolean SLIDING_WINDOWS = false;
