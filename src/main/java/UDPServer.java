@@ -78,7 +78,7 @@ public class UDPServer {
 
 
                     //if its the last packet, break
-                    if (message.data[message.data.length - 1] == 0) {
+                    if (message.data.length < DataPacket.DATASIZE) {
                         //the data doesnt reach the end of the packet, so add the last packet
 
                         byte [] previousPacketData = lastPacketReceived.data;

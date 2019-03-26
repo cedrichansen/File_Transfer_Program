@@ -134,7 +134,7 @@ public class Main {
 
 
             //checking data packets
-            byte [] dataBytes = new byte[DataPacket.DATASIZE];
+            byte [] dataBytes = new byte[32];
             Arrays.fill(dataBytes, (byte)1);
             dataBytes[19] = (byte)3;
 
