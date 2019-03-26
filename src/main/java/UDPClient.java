@@ -26,7 +26,7 @@ public class UDPClient {
     public void sendFile(String filePath) throws IOException {
 
         filePath = filePath.replace("~", System.getProperty("user.home"));
-        String fileName = filePath.substring(filePath.lastIndexOf("/"));
+        String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
 
 
         //sending 0 as the blockNum for the WRQ is what is required by the TFTP protocol

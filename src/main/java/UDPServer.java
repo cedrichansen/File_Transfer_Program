@@ -185,7 +185,7 @@ public class UDPServer {
             return false;
         }
 
-        System.out.println("File written successfully! File is located at: " + filePath);
+        System.out.println("\nFile written successfully! File is located at: " + filePath);
 
 
         return true;
