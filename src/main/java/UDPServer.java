@@ -26,10 +26,6 @@ public class UDPServer {
 
         try {
             DataPacket clientrequest = receivePacket();
-            //receiving initial wrq request.. if not a WRQ try to read another packet
-            while(clientrequest.opCode != DataPacket.WRQ) {
-                clientrequest = receivePacket();
-            }
 
             //the message String here is the filepath
             fileLocation = fileLocation+clientrequest.messageStr;
