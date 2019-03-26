@@ -60,8 +60,6 @@ public class UDPClient {
                 //this is the last byte array to be read, and likely isnt 512 bytes
                 byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, fileData.length + 1);
                 DataPacket data = DataPacket.createDataPacket(i+1, packet);
-
-                System.out.println("Sending the last packet: " + data.data.length + " bytes");
                 sendPacket(data.getBytes(), data.blockNum);
 
             } else {

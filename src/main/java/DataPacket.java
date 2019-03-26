@@ -258,7 +258,10 @@ public class DataPacket {
     }
 
     private byte [] getDataBytes() {
-        ByteBuffer bb = ByteBuffer.allocate(DATA_PACKET_SIZE);
+        //rather than allocation DATA_PACKET_SIZE for bytebuffer, we only allocate
+        //the amount of data needed for the given data size. this is needed
+        //because the last data Packet is smaller than 512 bytes
+        ByteBuffer bb = ByteBuffer.allocate(OPCODESIZE + BLOCKNUMSIZE + this.data.length);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
         bb.put(this.data);

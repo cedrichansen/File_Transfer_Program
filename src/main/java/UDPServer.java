@@ -77,8 +77,6 @@ public class UDPServer {
                         //if its the last packet, break
                         if (lastPacketReceived.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
                             //the data doesnt reach the end of the packet, so add the last packet
-                            System.out.println("Receiving last packet");
-
                             //add the data to files data
                             for (byte b : lastPacketReceived.data) {
                                 fileBytes.add(b);
