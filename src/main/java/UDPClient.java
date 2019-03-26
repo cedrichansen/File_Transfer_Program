@@ -26,25 +26,25 @@ public class UDPClient {
     public void sendFile(String filePath) throws IOException {
 
         filePath = filePath.replace("~", System.getProperty("user.home"));
+        String fileName = filePath.substring(filePath.lastIndexOf("/"));
 
-        long fileSizeL = (new File(filePath).length());
 
-        //send to the server how big the file will be
-        byte[] fileSize = longToBytes(fileSizeL);
-        sendPacket(fileSize);
+        //sending 0 as the blockNum for the WRQ is what is required by the TFTP protocol
+        DataPacket WRQ_Packet = DataPacket.createWrqPacket(fileName);
+        sendPacket(WRQ_Packet.getBytes(), 0);
 
         //create byte container to send the file
         //size of the buffer is equivalent to the size of the file in bytes
-        byte[] data = new byte[(int) fileSizeL];
+        byte[] fileData = new byte[(int) (new File(filePath).length())];
         FileInputStream fs = new FileInputStream(filePath);
-        fs.read(data);
+        fs.read(fileData);
         fs.close();
 
 
         //only send 512 bytes at a time as per IETF RFC 1350, and wait for ack
         //packet less than 512 bytes signals the end of transmission
 
-        int numPackets = roundUp(data.length, Main.PACKET_SIZE);
+        int numPackets = roundUp(fileData.length, DataPacket.DATASIZE);
 
         ProgressBar pb = new ProgressBar("Sent Data", numPackets);
 
@@ -54,13 +54,15 @@ public class UDPClient {
         for (int i = 0; i < numPackets; i++) {
             if (i == numPackets - 1) {
                 //this is the last byte array to be read, and likely isnt 512 bytes
-                byte[] packet = Arrays.copyOfRange(data, i * Main.PACKET_SIZE, data.length + 1);
-                sendPacket(packet);
+                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, fileData.length + 1);
+                DataPacket data = DataPacket.createDataPacket(i+1, packet);
+                sendPacket(data.getBytes(), data.blockNum);
 
             } else {
                 //512 byte array
-                byte[] packet = Arrays.copyOfRange(data, i * Main.PACKET_SIZE, (i + 1) * Main.PACKET_SIZE);
-                sendPacket(packet);
+                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, (i + 1) * DataPacket.DATASIZE);
+                DataPacket data = DataPacket.createDataPacket(i+1, packet);
+                sendPacket(data.getBytes(), data.blockNum);
             }
 
             pb.step();
@@ -74,13 +76,13 @@ public class UDPClient {
     }
 
 
-    public void sendPacket(byte[] data) {
+    public void sendPacket(byte[] data, int blockNum) {
 
         boolean packetSuccessfullySent = false;
         DatagramPacket msg = new DatagramPacket(data, data.length, address, port);
 
         // the response
-        byte[] resp = new byte[1];
+        byte[] resp = new byte[DataPacket.ACKSIZE_PACKET_SIZE];
         DatagramPacket response = new DatagramPacket(resp, resp.length, address, port);
         
         //try sending the udp packet until it successfully got an acknowledgement from server
@@ -91,7 +93,11 @@ public class UDPClient {
                 socket.setSoTimeout(2000);
                 socket.receive(response);
 
-                packetSuccessfullySent = true;
+                //response that we received has the correct blocknum, so the server received the data properly
+                DataPacket ack = DataPacket.readPacket(response.getData());
+                if (ack.blockNum == blockNum) {
+                    packetSuccessfullySent = true;
+                }
 
             } catch (IOException e) {
                 System.out.println("\nTimeout - Resending");

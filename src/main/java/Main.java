@@ -60,8 +60,6 @@ public class Main {
 
     final static int PORT = 2689;
 
-    public static int PACKET_SIZE = 512;
-
 
     public static void main (String [] args) {
 
@@ -173,7 +171,7 @@ public class Main {
             errPacket = DataPacket.readPacket(errBytes);
             System.out.println(errPacket.toString());
 
-            
+
         }
 
 
