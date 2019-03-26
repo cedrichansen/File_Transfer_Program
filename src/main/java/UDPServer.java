@@ -73,25 +73,24 @@ public class UDPServer {
 
                         //make sure to add the data of the previously held block
                         lastPacketReceived = message;
+                        
+                        //if its the last packet, break
+                        if (message.data.length < DataPacket.DATASIZE) {
+                            //the data doesnt reach the end of the packet, so add the last packet
 
-                    }
+                            previousPacketData = lastPacketReceived.data;
 
-
-                    //if its the last packet, break
-                    if (message.data.length < DataPacket.DATASIZE) {
-                        //the data doesnt reach the end of the packet, so add the last packet
-
-                        byte [] previousPacketData = lastPacketReceived.data;
-
-                        //add the data to files data
-                        for (byte b : previousPacketData) {
-                            fileBytes.add(b);
+                            //add the data to files data
+                            for (byte b : previousPacketData) {
+                                fileBytes.add(b);
+                            }
+                            numPacketsProcessed++;
+                            System.out.print("\rData Received: " + numPacketsProcessed);
+                            //done receiving data
+                            break;
                         }
-                        numPacketsProcessed++;
-                        System.out.print("\rData Received: " + numPacketsProcessed);
-                        //done receiving data
-                        break;
                     }
+
                 }
 
             } catch (IOException e) {
