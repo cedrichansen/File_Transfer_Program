@@ -24,13 +24,30 @@ public class UDPServer {
 
         System.out.println("Waiting for a connection...");
 
+        try {
+            DataPacket clientrequest = receivePacket();
+            //receiving initial wrq request.. if not a WRQ try to read another packet
+            while(clientrequest.opCode != DataPacket.WRQ) {
+                clientrequest = receivePacket();
+            }
+
+            //the message String here is the filepath
+            fileLocation = fileLocation+clientrequest.messageStr;
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Cannot properly receive WRQ packet");
+        }
+
         ArrayList<Byte> fileBytes = new ArrayList<>();
 
         DataPacket lastPacketReceived = DataPacket.createErrPacket("DataPacket never initialized");
         boolean receivedData = false;
+        int numPacketsProcessed = 0;
+
+
 
         //while true. i is simply used as a counter for an eventual loading bar
-        for (int i = 0; ; i++) {
+        while (true) {
 
             try {
                 DataPacket message = receivePacket();
@@ -51,6 +68,8 @@ public class UDPServer {
                         for (byte b : previousPacketData) {
                             fileBytes.add(b);
                         }
+                        numPacketsProcessed++;
+                        System.out.print("\rData Received: " + numPacketsProcessed);
 
                         //make sure to add the data of the previously held block
                         lastPacketReceived = message;
@@ -72,9 +91,6 @@ public class UDPServer {
                         //done receiving data
                         break;
                     }
-                }  else if (message.opCode == DataPacket.WRQ) {
-                    //should only ever occur once
-                    fileLocation = fileLocation + message.messageStr;
                 }
 
             } catch (IOException e) {
@@ -83,8 +99,6 @@ public class UDPServer {
                 return false;
             }
 
-
-            System.out.print("\rData Received: " + i);
 
         }
 
