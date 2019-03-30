@@ -7,6 +7,7 @@ import java.lang.reflect.Array;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -97,7 +98,7 @@ public class Main {
             try {
                 UDPServer server = new UDPServer(PORT);
                 printExternalIP();
-                boolean result = server.acceptFile(getInput("Enter the destination filepath"));
+                server.acceptFile(getInput("Enter the destination filepath"));
                 server.close();
 
             } catch (SocketException e) {
@@ -109,6 +110,7 @@ public class Main {
             }
 
         } else {
+
             /*
             This branch is PURELY FOR DEBUGGING/BASIC TESTING and will not be used in final program,
             Will be removed upon assignment completion.
@@ -140,7 +142,7 @@ public class Main {
 
             short windowSize = 12;
 
-            DataPacket data = DataPacket.createDataPacket(12, windowSize, dataBytes);
+            DataPacket data = DataPacket.createDataPacket(13, windowSize, dataBytes);
             System.out.println(data.toString());
             byte [] readDataBytes = data.getBytes();
             data = DataPacket.readPacket(readDataBytes);
@@ -202,6 +204,20 @@ public class Main {
 
 
     public static void processArgs(String [] args) {
+
+        ArrayList<String> a = new ArrayList<>();
+
+        a.addAll(Arrays.asList(args));
+
+        //throw exception if incorrect flags are being inputted
+        if (a.contains("4") && a.contains("6")) {
+            throw new IllegalArgumentException("Cannot have both IPv6 and IPv4 flags");
+        }
+        if (a.contains("-w") && a.contains("-s")) {
+            throw new IllegalArgumentException("Cannot have both Sliding windows and Sequential Acks flags");
+        }
+
+        //set appropriate flags
         for (String s : args) {
             if (s.equals("4")) {
                 IPv4 = true;

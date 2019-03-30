@@ -1,7 +1,7 @@
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-public class DataPacket {
+public class DataPacket implements Comparable<DataPacket> {
 
         /*
 
@@ -78,7 +78,7 @@ public class DataPacket {
     final static int WRQ_PACKET_SIZE = OPCODESIZE + FILENAMESIZE;
     final static int ACKSIZE_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE;
     final static int ERRSIZE_PACKET_SIZE = OPCODESIZE + ERRCODESIZE + ERRMESSAGESIZE;
-    final static int DATA_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE+ DATASIZE;
+    final static int DATA_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE + DATASIZE;
 
     //Data packets are the biggest of all the types of Datapackets
     final static int MAXDATASIZE=DATA_PACKET_SIZE;
@@ -188,7 +188,7 @@ public class DataPacket {
         bb.put(bytes);
         //short opCode = bb.getShort(0);
         int blockNum = bb.getInt(OPCODESIZE);
-        short windowSize = bb.getShort();
+        short windowSize = bb.getShort(OPCODESIZE + BLOCKNUMSIZE);
         byte [] dataBytes = new byte[bytes.length - (OPCODESIZE+ BLOCKNUMSIZE + WINDOWSIZE_SIZE) ];
         System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE + WINDOWSIZE_SIZE, dataBytes, 0, dataBytes.length);
         return createDataPacket(blockNum, windowSize, dataBytes);
@@ -200,7 +200,7 @@ public class DataPacket {
         bb.put(bytes);
         //short opCode = bb.getShort(0);
         int blockNum = bb.getInt(OPCODESIZE);
-        short windowSize = bb.getShort();
+        short windowSize = bb.getShort(OPCODESIZE + BLOCKNUMSIZE);
         return createAckPacket(blockNum, windowSize);
 
     }
@@ -263,7 +263,7 @@ public class DataPacket {
         //rather than allocation DATA_PACKET_SIZE for bytebuffer, we only allocate
         //the amount of data needed for the given data size. this is needed
         //because the last data Packet is smaller than 512 bytes
-        ByteBuffer bb = ByteBuffer.allocate(OPCODESIZE + BLOCKNUMSIZE + this.data.length);
+        ByteBuffer bb = ByteBuffer.allocate(OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE + this.data.length);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
         bb.putShort(this.windowSize);
@@ -313,8 +313,14 @@ public class DataPacket {
     @Override
     public String toString() {
         if (this.messageStr == null) {
-            return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " windowSize:" + this.windowSize;
+            return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " windowSize: " + this.windowSize;
         }
         return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " Message str: " + this.messageStr;
+    }
+
+
+    @Override
+    public int compareTo(DataPacket o) {
+        return this.blockNum-o.blockNum;
     }
 }
