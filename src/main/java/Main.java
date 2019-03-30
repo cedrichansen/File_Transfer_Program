@@ -138,7 +138,9 @@ public class Main {
             Arrays.fill(dataBytes, (byte)1);
             dataBytes[19] = (byte)3;
 
-            DataPacket data = DataPacket.createDataPacket(12, dataBytes);
+            short windowSize = 12;
+
+            DataPacket data = DataPacket.createDataPacket(12, windowSize, dataBytes);
             System.out.println(data.toString());
             byte [] readDataBytes = data.getBytes();
             data = DataPacket.readPacket(readDataBytes);
@@ -151,6 +153,11 @@ public class Main {
                 }
             }
 
+            if (windowSize != data.windowSize) {
+                difference = true;
+            }
+
+
             if (difference) {
                 System.out.println("Bytes not copied properly");
             } else {
@@ -158,7 +165,7 @@ public class Main {
             }
 
             //AckPacket stuff
-            DataPacket ackPacket = DataPacket.createAckPacket(14);
+            DataPacket ackPacket = DataPacket.createAckPacket(14, windowSize);
             System.out.println(ackPacket.toString());
 
             byte [] ackBytes = ackPacket.getBytes();

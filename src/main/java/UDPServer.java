@@ -115,23 +115,10 @@ public class UDPServer {
     public DataPacket receivePacket(short opCode) throws IOException {
 
         if (opCode == DataPacket.WRQ) {
-            byte [] dataBytes = new byte [DataPacket.WRQ_PACKET_SIZE];
-            DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
-            socket.receive(msg);
-
-            //create a data packet from which to extract the fileData
-            DataPacket data = DataPacket.readPacket(msg.getData());
-
-            //someone is trying to write data... we must reply with an ack with blockNum = 0;
-            DataPacket ack = DataPacket.createAckPacket(0);
-            byte [] ackBytes = ack.getBytes();
-            DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, msg.getAddress(), msg.getPort());
-            socket.send(ackPacket);
-
-            return data;
+            return receiveACK();
 
         } else {
-            //prepare to receive a packet of data
+            //prepare to receive a number of packets of data
             byte [] dataBytes = new byte [DataPacket.DATA_PACKET_SIZE];
             DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
             socket.receive(msg);
@@ -164,6 +151,24 @@ public class UDPServer {
         }
 
 
+    }
+
+
+    public DataPacket receiveACK() throws IOException {
+        byte [] dataBytes = new byte [DataPacket.WRQ_PACKET_SIZE];
+        DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length);
+        socket.receive(msg);
+
+        //create a data packet from which to extract the fileData
+        DataPacket data = DataPacket.readPacket(msg.getData());
+
+        //someone is trying to write data... we must reply with an ack with blockNum = 0;
+        DataPacket ack = DataPacket.createAckPacket(0);
+        byte [] ackBytes = ack.getBytes();
+        DatagramPacket ackPacket = new DatagramPacket(ackBytes, ackBytes.length, msg.getAddress(), msg.getPort());
+        socket.send(ackPacket);
+
+        return data;
     }
 
 

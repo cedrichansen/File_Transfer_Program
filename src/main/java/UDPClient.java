@@ -1,8 +1,5 @@
-import me.tongfei.progressbar.ProgressBar;
-
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,6 +12,11 @@ public class UDPClient {
     DatagramSocket socket;
     InetAddress address;
     int port;
+    short windowSize = 1;
+    int MAX_WINDOW_SIZE = (int)Math.pow(DataPacket.BLOCKNUMSIZE, 2) -1;
+
+    boolean lastPacketsSentSuccessFully = true;
+    int packetsSuccessfullySent = 0;
 
     static List<String> filesListInDir = new ArrayList<String>();
 
@@ -53,7 +55,7 @@ public class UDPClient {
         // the 0 here never actually gets written or sent, but we check that the ack
         // received is indeed a 0 (all done inside the method)
         DataPacket WRQ_Packet = DataPacket.createWrqPacket(fileName);
-        sendPacket(WRQ_Packet.getBytes(), 0);
+        sendWRQPacket(WRQ_Packet.getBytes(), 0);
 
         System.out.println("Successfully connected!");
 
@@ -65,35 +67,39 @@ public class UDPClient {
         fs.close();
 
 
-        //only send 512 bytes at a time as per IETF RFC 1350, and wait for ack
-        //packet less than 512 bytes signals the end of transmission
-
         int numPackets = roundUp(fileData.length, DataPacket.DATASIZE);
+        ArrayList<byte []> messages = splitUpBytes(numPackets, fileData);
 
-        ProgressBar pb = new ProgressBar("Sent Data", numPackets);
+        int successMultiplier = 1;
+        short windowSize = 1;
 
-        pb.start();
-
-        //Populate and send the byte arrays
-        for (int i = 0; i < numPackets; i++) {
-            if (i == numPackets - 1) {
-                //this is the last byte array to be read, and likely isnt 512 bytes
-                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, fileData.length + 1);
-                DataPacket data = DataPacket.createDataPacket(i+1, packet);
-                sendPacket(data.getBytes(), data.blockNum);
-
-            } else {
-                //512 byte array
-                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, (i + 1) * DataPacket.DATASIZE);
-                DataPacket data = DataPacket.createDataPacket(i+1, packet);
-                sendPacket(data.getBytes(), data.blockNum);
-            }
-
-            pb.step();
-
+        if (Main.SLIDING_WINDOWS) {
+            successMultiplier = 2;
         }
 
-        pb.stop();
+        while (packetsSuccessfullySent < messages.size()){
+            //determine how many packets to send
+            if (lastPacketsSentSuccessFully && windowSize<MAX_WINDOW_SIZE) {
+                windowSize *= successMultiplier;
+            }
+
+            if (!lastPacketsSentSuccessFully) {
+                windowSize /= successMultiplier;
+            }
+
+            sendDataPackets(messages, packetsSuccessfullySent, windowSize);
+
+            //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
+            if (lastPacketsSentSuccessFully) {
+                packetsSuccessfullySent += windowSize;
+                System.out.println("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets);
+            } else {
+                //packet not successfully sent, so resend the same info but window size will now be reduced
+                System.out.println("\rShrinking window size");
+            }
+
+
+        }
 
 
         if (filePath.contains(".zip")) {
@@ -107,7 +113,59 @@ public class UDPClient {
     }
 
 
-    public void sendPacket(byte[] data, int blockNum) {
+    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex, short windowSize) {
+
+
+
+        DatagramPacket [] packetsToBeSent = new DatagramPacket[windowSize];
+
+        for (int i = 0; i<startIndex+windowSize; i++) {
+            DataPacket data = DataPacket.createDataPacket(packetsSuccessfullySent+i, windowSize, fileData.get(i));
+            byte [] dataBytes = data.getBytes();
+
+            DatagramPacket msg = new DatagramPacket(dataBytes, dataBytes.length, address, port);
+            packetsToBeSent[i] = msg;
+        }
+
+
+        boolean packetsSuccessfullySent = false;
+        // the response which will acknowledge all packets have been delivered
+        byte[] resp = new byte[DataPacket.ACKSIZE_PACKET_SIZE];
+        DatagramPacket response = new DatagramPacket(resp, resp.length, address, port);
+        
+        //try sending the udp packet until it successfully got an acknowledgement from server
+         do {
+
+            try {
+                for (int i =0; i<packetsToBeSent.length; i++) {
+                    socket.send(packetsToBeSent[i]);
+                }
+                socket.setSoTimeout(5000);
+                socket.receive(response);
+
+                //response that we received has the correct blocknum, so the server received the data properly
+                DataPacket ack = DataPacket.readPacket(response.getData());
+
+                //the server will reply with what it thinks the current window size is. If the window size matches, then
+                // we know the server received all the data
+                if (ack.windowSize == windowSize) {
+                    packetsSuccessfullySent = true;
+                    lastPacketsSentSuccessFully = true;
+                } else {
+                    lastPacketsSentSuccessFully = false;
+                    break;
+                }
+
+            } catch (IOException e) {
+                System.out.println("\nTimeout - Resending");
+            }
+
+        } while (!packetsSuccessfullySent);
+
+    }
+
+
+    public void sendWRQPacket(byte[] data, int blockNum) {
 
         boolean packetSuccessfullySent = false;
         DatagramPacket msg = new DatagramPacket(data, data.length, address, port);
@@ -115,9 +173,9 @@ public class UDPClient {
         // the response
         byte[] resp = new byte[DataPacket.ACKSIZE_PACKET_SIZE];
         DatagramPacket response = new DatagramPacket(resp, resp.length, address, port);
-        
+
         //try sending the udp packet until it successfully got an acknowledgement from server
-         do {
+        do {
 
             try {
                 socket.send(msg);
@@ -137,7 +195,34 @@ public class UDPClient {
         } while (!packetSuccessfullySent);
 
 
+
     }
+
+
+
+    //return a list, which is essentially all of the packets that are needed to send.
+    public ArrayList<byte []> splitUpBytes(int numPackets, byte [] fileData) {
+        ArrayList<byte []> messages = new ArrayList<>();
+
+        //Populate and send the byte arrays
+        for (int i = 0; i < numPackets; i++) {
+            if (i == numPackets - 1) {
+                //this is the last byte array to be read, and likely isnt 512 bytes
+                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, fileData.length + 1);
+                messages.add(packet);
+
+            } else {
+                //512 byte array
+                byte[] packet = Arrays.copyOfRange(fileData, i * DataPacket.DATASIZE, (i + 1) * DataPacket.DATASIZE);
+                messages.add(packet);
+            }
+        }
+
+        return messages;
+    }
+
+
+
 
 
     public void close() {
@@ -153,14 +238,6 @@ public class UDPClient {
     public static int roundUp(int num, int divisor) {
         return (num + divisor - 1) / divisor;
     }
-
-    public byte[] longToBytes(long x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(x);
-        return buffer.array();
-    }
-
-
 
 
     private static void zipDirectory(File dir, String zipDirName) {

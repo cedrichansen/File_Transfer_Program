@@ -16,19 +16,19 @@ public class DataPacket {
              Figure 5-1: RRQ/WRQ packet
 
 
-       2 bytes     4 bytes   512 bytes MAX
-       ----------------------------------
-      | Opcode |   Block #  |   Data     |
-       ----------------------------------
+       2 bytes     4 bytes   2 bytes    512 bytes MAX
+       -----------------------------------------------
+      | Opcode |   Block #  | windowSize|   Data     |
+       ----------------------------------------------
 
          Figure 5-2: DATA packet
 
 
 
-         2 bytes     4 bytes
-         ---------------------
-        | Opcode |   Block #  |
-         ---------------------
+         2 bytes     4 bytes    2 bytes
+         --------------------------------
+        | Opcode |   Block #  |windowSize|
+         --------------------------------
 
           Figure 5-3: ACK packet
 
@@ -52,6 +52,7 @@ public class DataPacket {
     String messageStr;
     // only supported mode will be binary (octect) transmission. This will be default
     //byte [] mode;
+    short windowSize;
 
 
 
@@ -69,14 +70,15 @@ public class DataPacket {
     final static short ERRCODESIZE = 2;
     final static short ERRMESSAGESIZE = 128;
     final static short DATASIZE = 512;
+    final static short WINDOWSIZE_SIZE = 2;
 
 
     //Constant values for packet sizes
     final static int RRQ_PACKET_SIZE = OPCODESIZE + FILENAMESIZE;
     final static int WRQ_PACKET_SIZE = OPCODESIZE + FILENAMESIZE;
-    final static int ACKSIZE_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE;
+    final static int ACKSIZE_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE;
     final static int ERRSIZE_PACKET_SIZE = OPCODESIZE + ERRCODESIZE + ERRMESSAGESIZE;
-    final static int DATA_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + DATASIZE;
+    final static int DATA_PACKET_SIZE = OPCODESIZE + BLOCKNUMSIZE + WINDOWSIZE_SIZE+ DATASIZE;
 
     //Data packets are the biggest of all the types of Datapackets
     final static int MAXDATASIZE=DATA_PACKET_SIZE;
@@ -93,16 +95,18 @@ public class DataPacket {
 
 
     //used to send data
-    private DataPacket(short opCode, int blockNum, byte [] data) {
+    private DataPacket(short opCode, int blockNum, short windowSize, byte [] data) {
         this.opCode = opCode;
         this.blockNum = blockNum;
+        this.windowSize = windowSize;
         this.data = data;
     }
 
     //used for ACK's
-    private DataPacket(short opCode, int blockNum) {
+    private DataPacket(short opCode, int blockNum, short windowSize) {
         this.opCode = opCode;
         this.blockNum = blockNum;
+        this.windowSize = windowSize;
     }
 
 
@@ -117,12 +121,12 @@ public class DataPacket {
         return new DataPacket(WRQ, message);
     }
 
-    public static DataPacket createAckPacket(int blockNum) {
-        return new DataPacket(ACK, blockNum);
+    public static DataPacket createAckPacket(int blockNum, short windowSize) {
+        return new DataPacket(ACK, blockNum, windowSize);
     }
 
-    public static DataPacket createDataPacket(int blockNum, byte [] data) {
-        return new DataPacket(DATA, blockNum, data);
+    public static DataPacket createDataPacket(int blockNum, short windowSize, byte [] data) {
+        return new DataPacket(DATA, blockNum, windowSize,  data);
     }
 
     public static DataPacket createErrPacket(String message) {
@@ -184,9 +188,10 @@ public class DataPacket {
         bb.put(bytes);
         //short opCode = bb.getShort(0);
         int blockNum = bb.getInt(OPCODESIZE);
-        byte [] dataBytes = new byte[bytes.length - (OPCODESIZE+ BLOCKNUMSIZE) ];
-        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE, dataBytes, 0, dataBytes.length);
-        return createDataPacket(blockNum, dataBytes);
+        short windowSize = bb.getShort();
+        byte [] dataBytes = new byte[bytes.length - (OPCODESIZE+ BLOCKNUMSIZE + WINDOWSIZE_SIZE) ];
+        System.arraycopy(bytes, OPCODESIZE+BLOCKNUMSIZE + WINDOWSIZE_SIZE, dataBytes, 0, dataBytes.length);
+        return createDataPacket(blockNum, windowSize, dataBytes);
 
     }
 
@@ -195,7 +200,8 @@ public class DataPacket {
         bb.put(bytes);
         //short opCode = bb.getShort(0);
         int blockNum = bb.getInt(OPCODESIZE);
-        return createAckPacket(blockNum);
+        short windowSize = bb.getShort();
+        return createAckPacket(blockNum, windowSize);
 
     }
 
@@ -209,10 +215,6 @@ public class DataPacket {
         return createErrPacket(errorMessage);
 
     }
-
-
-
-
 
 
 
@@ -264,6 +266,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(OPCODESIZE + BLOCKNUMSIZE + this.data.length);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
+        bb.putShort(this.windowSize);
         bb.put(this.data);
         ((Buffer)bb).flip();
         return bb.array();
@@ -274,6 +277,7 @@ public class DataPacket {
         ByteBuffer bb = ByteBuffer.allocate(ACKSIZE_PACKET_SIZE);
         bb.putShort(this.opCode);
         bb.putInt(this.blockNum);
+        bb.putShort(this.windowSize);
         ((Buffer)bb).flip();
         return bb.array();
     }
@@ -308,6 +312,9 @@ public class DataPacket {
 
     @Override
     public String toString() {
+        if (this.messageStr == null) {
+            return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " windowSize:" + this.windowSize;
+        }
         return "Opcode: " + this.opCode + " BlockNum: " + blockNum + " Message str: " + this.messageStr;
     }
 }
