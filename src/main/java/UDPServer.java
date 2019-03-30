@@ -17,7 +17,7 @@ import net.lingala.zip4j.core.ZipFile;
 public class UDPServer {
 
     DatagramSocket socket;
-    int numPacketsReceived = 0;
+    boolean lastPacket = false;
 
 
     public UDPServer(int port) throws SocketException {
@@ -80,7 +80,7 @@ public class UDPServer {
                 lastPacketsReceived = incomingPackets;
 
                 //if its the last packet, break
-                if (lastPacketsReceived.get(lastPacketsReceived.size()-1).getBytes().length < DataPacket.DATA_PACKET_SIZE) {
+                if (lastPacket) {
                     //the data doesnt reach the end of the packet, so add the last packet
                     //add the data to files data
                     for (DataPacket d:lastPacketsReceived) {
@@ -151,6 +151,7 @@ public class UDPServer {
             packets.add(p);
             if (p.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
                 //we just received the last packet, so fix the window size, and break
+                lastPacket = true;
                 break;
             }
 
@@ -172,7 +173,7 @@ public class UDPServer {
         try {
             socket.send(ackPacket);
         } catch (IOException e) {
-            System.out.println("Problem with sending the ack");
+            System.out.println("\nProblem with sending the ack");
         }
 
         //sort packets so they are in order of blockNum

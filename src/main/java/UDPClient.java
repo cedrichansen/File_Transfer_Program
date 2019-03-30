@@ -106,7 +106,7 @@ public class UDPClient {
             (new File(filePath)).delete();
         }
 
-        System.out.println("Successfully sent the file");
+        System.out.println("\nSuccessfully sent the file");
 
 
     }
