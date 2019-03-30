@@ -147,7 +147,12 @@ public class UDPServer {
                 System.out.println("Problem receiving from socket loop");
                 e.printStackTrace();
             }
-            packets.add(DataPacket.readPacket(msg.getData()));
+            DataPacket p = DataPacket.readPacket(msg.getData());
+            packets.add(p);
+            if (p.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
+                //we just received the last packet, so fix the window size, and break
+                break;
+            }
 
         }
 
