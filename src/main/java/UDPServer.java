@@ -46,6 +46,7 @@ public class UDPServer {
 
         ArrayList<Byte> fileBytes = new ArrayList<>();
         ArrayList<DataPacket> lastPacketsReceived = new ArrayList<>();
+        boolean firstPackets = true;
 
         int numPacketsProcessed = 0;
 
@@ -57,10 +58,11 @@ public class UDPServer {
             ArrayList<DataPacket> incomingPackets = receiveDataPackets();
 
 
-            if (fileBytes.size() == 0) {
+            if (firstPackets) {
                 //this is the first Datapacket list we receive, so we hold on until we receive the next packet.
                 //this insures that the client has successfully received the ack.
                 lastPacketsReceived = incomingPackets;
+                firstPackets = false;
             } else {
                 //we have received at least one packet of data, so we add the previous packet to the list of bytes
                 for (DataPacket d:lastPacketsReceived) {
@@ -131,7 +133,6 @@ public class UDPServer {
         DataPacket data = DataPacket.readPacket(receivedBytes);
         packets.add(data);
 
-        System.out.println("\rReceived packets: " + numPacketsReceived++);
 
         //we expect to receive windowSize number of packets
         short windowSize = data.windowSize;
@@ -142,7 +143,6 @@ public class UDPServer {
             try {
                 socket.setSoTimeout(5000);
                 socket.receive(msg);
-                System.out.println("\rReceived packets: " + numPacketsReceived++);
             } catch (IOException e) {
                 System.out.println("Problem receiving from socket loop");
                 e.printStackTrace();

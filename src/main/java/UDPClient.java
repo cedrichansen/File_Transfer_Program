@@ -92,10 +92,10 @@ public class UDPClient {
             //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
             if (lastPacketsSentSuccessFully) {
                 packetsSuccessfullySent += windowSize;
-                System.out.println("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets);
+                System.out.print("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets + " current window size: " + windowSize);
             } else {
                 //packet not successfully sent, so resend the same info but window size will now be reduced
-                System.out.println("\rShrinking window size");
+                System.out.print("\rShrinking window size");
             }
 
 
