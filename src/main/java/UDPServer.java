@@ -119,7 +119,7 @@ public class UDPServer {
         try {
             socket.receive(msg);
         } catch (IOException e) {
-            System.out.println("Problem receiving from socket 1 ");
+            System.out.println("\nProblem receiving from socket 1 ");
             e.printStackTrace();
         }
 
@@ -144,7 +144,7 @@ public class UDPServer {
                 socket.setSoTimeout(5000);
                 socket.receive(msg);
             } catch (IOException e) {
-                System.out.println("Problem receiving from socket loop");
+                System.out.println("\nProblem receiving from socket loop");
                 e.printStackTrace();
             }
             DataPacket p = DataPacket.readPacket(msg.getData());

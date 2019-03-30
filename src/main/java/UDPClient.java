@@ -71,7 +71,6 @@ public class UDPClient {
         ArrayList<byte []> messages = splitUpBytes(numPackets, fileData);
 
         int successMultiplier = 1;
-        short windowSize = 1;
 
         if (Main.SLIDING_WINDOWS) {
             successMultiplier = 2;
@@ -87,12 +86,12 @@ public class UDPClient {
                 windowSize /= successMultiplier;
             }
 
-            sendDataPackets(messages, packetsSuccessfullySent, windowSize);
+            sendDataPackets(messages, packetsSuccessfullySent);
 
             //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
             if (lastPacketsSentSuccessFully) {
                 packetsSuccessfullySent += windowSize;
-                System.out.print("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets + " current window size: " + windowSize);
+                System.out.print("\rCurrent window size: " + windowSize + " Data Sent: " + packetsSuccessfullySent + "/" + numPackets );
             } else {
                 //packet not successfully sent, so resend the same info but window size will now be reduced
                 System.out.print("\rShrinking window size");
@@ -113,7 +112,7 @@ public class UDPClient {
     }
 
 
-    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex, short windowSize) {
+    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex) {
 
 
 
