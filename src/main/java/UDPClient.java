@@ -119,7 +119,7 @@ public class UDPClient {
 
         DatagramPacket [] packetsToBeSent = new DatagramPacket[windowSize];
 
-        for (int i = 0; i<windowSize; i++) {
+        for (int i = 0; i<windowSize || startIndex+i<fileData.size(); i++) {
             DataPacket data = DataPacket.createDataPacket(packetsSuccessfullySent+i, windowSize, fileData.get(startIndex+i));
             byte [] dataBytes = data.getBytes();
 

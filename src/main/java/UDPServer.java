@@ -12,13 +12,12 @@ import java.util.Random;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.core.ZipFile;
 
-import javax.xml.crypto.Data;
 
 
 public class UDPServer {
 
     DatagramSocket socket;
-    boolean doneReceiving = false;
+
 
     public UDPServer(int port) throws SocketException {
         socket = new DatagramSocket(port);
@@ -117,7 +116,7 @@ public class UDPServer {
         try {
             socket.receive(msg);
         } catch (IOException e) {
-            System.out.println("Problem receiving from socket");
+            System.out.println("Problem receiving from socket 1 ");
             e.printStackTrace();
         }
 
@@ -135,18 +134,14 @@ public class UDPServer {
         short windowSize = data.windowSize;
 
 
-        //skip first index because that is the initial packet
+        //skip first index because that is the initial packet we have already received
         for (int i = 1; i < windowSize; i++) {
             try {
+                socket.setSoTimeout(5000);
                 socket.receive(msg);
             } catch (IOException e) {
-                System.out.println("Problem receiving from socket");
+                System.out.println("Problem receiving from socket loop");
                 e.printStackTrace();
-            }
-            try {
-                socket.setSoTimeout(1000);
-            } catch (SocketException e) {
-                System.out.println("Timeout");
             }
             packets.add(DataPacket.readPacket(msg.getData()));
         }
