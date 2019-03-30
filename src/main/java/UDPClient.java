@@ -119,7 +119,7 @@ public class UDPClient {
 
         DatagramPacket [] packetsToBeSent = new DatagramPacket[windowSize];
 
-        for (int i = 0; i<windowSize || startIndex+i<fileData.size(); i++) {
+        for (int i = 0; i<windowSize && startIndex+i<fileData.size(); i++) {
             DataPacket data = DataPacket.createDataPacket(packetsSuccessfullySent+i, windowSize, fileData.get(startIndex+i));
             byte [] dataBytes = data.getBytes();
 
@@ -138,8 +138,11 @@ public class UDPClient {
 
             try {
                 for (int i =0; i<packetsToBeSent.length; i++) {
-                    socket.send(packetsToBeSent[i]);
+                    if (packetsToBeSent[i] != null) {
+                        socket.send(packetsToBeSent[i]);
+                    }
                 }
+                //
                 socket.setSoTimeout(5000);
                 socket.receive(response);
 
@@ -158,6 +161,7 @@ public class UDPClient {
 
             } catch (IOException e) {
                 System.out.println("\nTimeout - Resending");
+                lastPacketsSentSuccessFully = false;
             }
 
         } while (!packetsSuccessfullySent);

@@ -17,6 +17,7 @@ import net.lingala.zip4j.core.ZipFile;
 public class UDPServer {
 
     DatagramSocket socket;
+    int numPacketsReceived = 0;
 
 
     public UDPServer(int port) throws SocketException {
@@ -130,6 +131,8 @@ public class UDPServer {
         DataPacket data = DataPacket.readPacket(receivedBytes);
         packets.add(data);
 
+        System.out.println("\rReceived packets: " + numPacketsReceived++);
+
         //we expect to receive windowSize number of packets
         short windowSize = data.windowSize;
 
@@ -139,11 +142,13 @@ public class UDPServer {
             try {
                 socket.setSoTimeout(5000);
                 socket.receive(msg);
+                System.out.println("\rReceived packets: " + numPacketsReceived++);
             } catch (IOException e) {
                 System.out.println("Problem receiving from socket loop");
                 e.printStackTrace();
             }
             packets.add(DataPacket.readPacket(msg.getData()));
+
         }
 
 
