@@ -94,9 +94,9 @@ public class UDPClient {
 
             startTime = System.currentTimeMillis();
             //actually send packets here
-            sendDataPackets(messages, packetsSuccessfullySent, estRTT);
+            sendDataPackets(messages, packetsSuccessfullySent, 2* estRTT);
             //resample appropriate timeout based on RTT we just sampled
-            rtt_EWMA(4 * (int)(System.currentTimeMillis() - startTime));
+            rtt_EWMA((int)(System.currentTimeMillis() - startTime));
 
             //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
             if (lastPacketsSentSuccessFully) {
@@ -105,7 +105,7 @@ public class UDPClient {
             } else {
                 //packet not successfully sent, so resend the same info but window size will now be reduced
                 System.out.print("\rShrinking window size");
-                estRTT *= 4;
+                estRTT *= 2;
             }
 
 
