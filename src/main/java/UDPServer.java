@@ -75,7 +75,7 @@ public class UDPServer {
 
 
                 numPacketsProcessed += lastPacketsReceived.get(0).windowSize;
-                System.out.print("\rData Received: " + numPacketsProcessed + " window size: " + windowSize);
+                System.out.print("\rData Received: " + numPacketsProcessed);
 
                 //make sure to add the data of the previously held block
                 lastPacketsReceived = incomingPackets;
