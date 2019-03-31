@@ -134,6 +134,10 @@ public class UDPServer {
         DataPacket data = DataPacket.readPacket(receivedBytes);
         packets.add(data);
 
+        if (data.getBytes().length <DataPacket.DATA_PACKET_SIZE) {
+            lastPacket = true;
+        }
+
 
         //we expect to receive windowSize number of packets
         windowSize = data.windowSize;
@@ -156,7 +160,6 @@ public class UDPServer {
             packets.add(p);
 
             if (p.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
-                System.out.println("Just found the last packet!");
                 //we just received the last packet, so fix the window size, and break
                 lastPacket = true;
                 break;
