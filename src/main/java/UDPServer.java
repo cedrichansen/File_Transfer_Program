@@ -121,7 +121,6 @@ public class UDPServer {
             socket.receive(msg);
         } catch (IOException e) {
             System.out.println("\nProblem receiving from socket 1 ");
-            System.out.println("Window size: " + windowSize);
             e.printStackTrace();
         }
 
@@ -149,8 +148,13 @@ public class UDPServer {
                 System.out.println("\nProblem receiving from socket loop");
                 e.printStackTrace();
             }
-            DataPacket p = DataPacket.readPacket(msg.getData());
+            numDataBytes = msg.getLength();
+            receivedBytes = new byte[numDataBytes];
+            System.arraycopy(dataBytes, 0, receivedBytes, 0, numDataBytes);
+
+            DataPacket p = DataPacket.readPacket(receivedBytes);
             packets.add(p);
+
             if (p.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
                 System.out.println("Just found the last packet!");
                 //we just received the last packet, so fix the window size, and break
