@@ -52,10 +52,10 @@ public class UDPServer {
 
 
         //while true. i is simply used as a counter for an eventual loading bar
-        while (true) {
+        while (!lastPacket) {
 
             //try to receive a dataPacket
-            ArrayList<DataPacket> incomingPackets = receiveDataPackets();
+            ArrayList<DataPacket> incomingPackets = receiveDataPackets(5000);
 
 
             if (firstPackets) {
@@ -109,7 +109,7 @@ public class UDPServer {
     }
 
 
-    public ArrayList<DataPacket> receiveDataPackets() {
+    public ArrayList<DataPacket> receiveDataPackets(int timeout) {
 
         ArrayList<DataPacket> packets = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class UDPServer {
         //skip first index because that is the initial packet we have already received
         for (int i = 1; i < windowSize; i++) {
             try {
-                socket.setSoTimeout(5000);
+                socket.setSoTimeout(timeout);
                 socket.receive(msg);
             } catch (IOException e) {
                 System.out.println("\nProblem receiving from socket loop");
