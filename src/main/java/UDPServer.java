@@ -51,7 +51,7 @@ public class UDPServer {
         int numPacketsProcessed = 0;
 
 
-        //while true. i is simply used as a counter for an eventual loading bar
+
         while (!lastPacket) {
 
             //try to receive a dataPacket
@@ -150,6 +150,7 @@ public class UDPServer {
             DataPacket p = DataPacket.readPacket(msg.getData());
             packets.add(p);
             if (p.getBytes().length < DataPacket.DATA_PACKET_SIZE) {
+                System.out.println("Just found the last packet!");
                 //we just received the last packet, so fix the window size, and break
                 lastPacket = true;
                 break;
