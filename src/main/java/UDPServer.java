@@ -18,6 +18,7 @@ public class UDPServer {
 
     DatagramSocket socket;
     boolean lastPacket = false;
+    short windowSize = 1;
 
 
     public UDPServer(int port) throws SocketException {
@@ -120,6 +121,7 @@ public class UDPServer {
             socket.receive(msg);
         } catch (IOException e) {
             System.out.println("\nProblem receiving from socket 1 ");
+            System.out.println("Window size: " + windowSize);
             e.printStackTrace();
         }
 
@@ -135,7 +137,7 @@ public class UDPServer {
 
 
         //we expect to receive windowSize number of packets
-        short windowSize = data.windowSize;
+        windowSize = data.windowSize;
 
 
         //skip first index because that is the initial packet we have already received
