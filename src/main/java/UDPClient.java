@@ -76,6 +76,8 @@ public class UDPClient {
             successMultiplier = 2;
         }
 
+        long start = System.currentTimeMillis();
+
         while (packetsSuccessfullySent < messages.size()){
             //determine how many packets to send
             if (lastPacketsSentSuccessFully && windowSize<MAX_WINDOW_SIZE) {
@@ -99,6 +101,11 @@ public class UDPClient {
 
 
         }
+
+        long time = (System.currentTimeMillis()-start);
+        System.out.println("\nTotal time to send " + ((int) (new File(filePath).length())) + " bytes : " + time + " ms");
+        System.out.println("Throughput: " + ((((int) (new File(filePath).length()))/time) * 125));
+
 
 
         if (filePath.contains(".zip")) {
