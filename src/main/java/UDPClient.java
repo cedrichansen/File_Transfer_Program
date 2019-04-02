@@ -110,7 +110,7 @@ public class UDPClient {
 
         long totalTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("Time to receive " + fileData.length + " bytes : " + totalTime);
+        System.out.println("\nTime to send " + fileData.length + " bytes : " + totalTime + "ms");
         System.out.println("Throughput: " + ((float)(((fileData.length)/totalTime)/125)));
 
 
