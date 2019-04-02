@@ -80,7 +80,9 @@ public class UDPClient {
             successMultiplier = 2;
         }
 
-        long startTime = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
+        long packetStart;
+
 
         while (packetsSuccessfullySent < messages.size()){
             //determine how many packets to send
@@ -92,11 +94,11 @@ public class UDPClient {
                 windowSize /= successMultiplier;
             }
 
-            startTime = System.currentTimeMillis();
+            packetStart = System.currentTimeMillis();
             //actually send packets here
             sendDataPackets(messages, packetsSuccessfullySent, 4 * estRTT);
             //resample appropriate timeout based on RTT we just sampled
-            rtt_EWMA((int)(System.currentTimeMillis() - startTime));
+            rtt_EWMA((int)(System.currentTimeMillis() - packetStart));
 
             //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
             if (lastPacketsSentSuccessFully) {
@@ -113,8 +115,10 @@ public class UDPClient {
 
         }
 
+        long time = (System.currentTimeMillis()-start);
+        System.out.println("\nTotal time to send " + ((int) (new File(filePath).length())) + " bytes : " + time + " ms");
+        System.out.println("Throughput: " + ((((int) (new File(filePath).length()))/time) * 125));
 
-        System.out.println("Time to send " + ((int) (new File(filePath).length())) + " bytes : " + (System.currentTimeMillis()-startTime));
 
         if (filePath.contains(".zip")) {
             System.out.println("Removing temporary zip file");
