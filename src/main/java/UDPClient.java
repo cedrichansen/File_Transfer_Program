@@ -25,6 +25,10 @@ public class UDPClient {
         address = InetAddress.getByName(ip);
         this.port = port;
         socket = new DatagramSocket(this.port);
+
+        if (Main.IPV6) {
+            System.setProperty("java.net.preferIPv6Addresses", "true");
+        }
     }
 
 

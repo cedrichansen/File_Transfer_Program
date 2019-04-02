@@ -23,6 +23,10 @@ public class UDPServer {
 
     public UDPServer(int port) throws SocketException {
         socket = new DatagramSocket(port);
+
+        if (Main.IPV6) {
+            System.setProperty("java.net.preferIPv6Addresses", "true");
+        }
     }
 
 
