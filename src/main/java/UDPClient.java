@@ -18,7 +18,7 @@ public class UDPClient {
     boolean lastPacketsSentSuccessFully = true;
     int packetsSuccessfullySent = 0;
 
-    int estRTT = 2000;
+    int estRTT = 4000;
     float sampleRTT_WEIGHT = 0.15f;
     float knownRTT_WEIGHT = 0.85f;
 
@@ -80,7 +80,7 @@ public class UDPClient {
             successMultiplier = 2;
         }
 
-        long startTime;
+        long startTime = System.currentTimeMillis();
 
         while (packetsSuccessfullySent < messages.size()){
             //determine how many packets to send
@@ -105,12 +105,16 @@ public class UDPClient {
             } else {
                 //packet not successfully sent, so resend the same info but window size will now be reduced
                 System.out.print("\rShrinking window size");
-                estRTT *= 4;
+                if (estRTT < 5000) {
+                    estRTT = estRTT * 2;
+                }
             }
 
 
         }
 
+
+        System.out.println("Time to send " + ((int) (new File(filePath).length())) + " bytes : " + (System.currentTimeMillis()-startTime));
 
         if (filePath.contains(".zip")) {
             System.out.println("Removing temporary zip file");
@@ -123,8 +127,9 @@ public class UDPClient {
     }
 
 
-    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex, int timeout) {
+    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex, int estRTT) {
 
+        int timeout = estRTT * 4;
 
         if (startIndex + windowSize > fileData.size()) {
             windowSize = (short)(fileData.size() -startIndex);
