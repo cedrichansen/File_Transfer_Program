@@ -18,7 +18,7 @@ public class UDPClient {
     boolean lastPacketsSentSuccessFully = true;
     int packetsSuccessfullySent = 0;
 
-    int estRTT = 4000;
+    int estRTT = 5000;
     float sampleRTT_WEIGHT = 0.15f;
     float knownRTT_WEIGHT = 0.85f;
 
@@ -96,7 +96,7 @@ public class UDPClient {
 
             packetStart = System.currentTimeMillis();
             //actually send packets here
-            sendDataPackets(messages, packetsSuccessfullySent, 4 * estRTT);
+            sendDataPackets(messages, packetsSuccessfullySent);
             //resample appropriate timeout based on RTT we just sampled
             rtt_EWMA((int)(System.currentTimeMillis() - packetStart));
 
@@ -131,7 +131,7 @@ public class UDPClient {
     }
 
 
-    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex, int estRTT) {
+    public void sendDataPackets(ArrayList<byte []> fileData, int startIndex) {
 
         int timeout = estRTT * 4;
 
