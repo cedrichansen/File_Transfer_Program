@@ -80,6 +80,9 @@ public class UDPClient {
             successMultiplier = 2;
         }
 
+        long startTime = System.currentTimeMillis();
+
+
         while (packetsSuccessfullySent < messages.size()){
             //determine how many packets to send
             if (lastPacketsSentSuccessFully && windowSize<MAX_WINDOW_SIZE) {
@@ -103,6 +106,12 @@ public class UDPClient {
 
 
         }
+
+
+        long totalTime = System.currentTimeMillis() - startTime;
+
+        System.out.println("Time to receive " + fileData.length + " bytes : " + totalTime);
+        System.out.println("Throughput: " + ((float)(((fileData.length)/totalTime)/125)));
 
 
         if (filePath.contains(".zip")) {
