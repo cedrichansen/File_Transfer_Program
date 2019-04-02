@@ -18,10 +18,6 @@ public class UDPClient {
     boolean lastPacketsSentSuccessFully = true;
     int packetsSuccessfullySent = 0;
 
-    int estRTT = 5000;
-    float sampleRTT_WEIGHT = 0.15f;
-    float knownRTT_WEIGHT = 0.85f;
-
     static List<String> filesListInDir = new ArrayList<String>();
 
 
@@ -81,8 +77,6 @@ public class UDPClient {
         }
 
         long start = System.currentTimeMillis();
-        long packetStart;
-
 
         while (packetsSuccessfullySent < messages.size()){
             //determine how many packets to send
@@ -94,22 +88,16 @@ public class UDPClient {
                 windowSize /= successMultiplier;
             }
 
-            packetStart = System.currentTimeMillis();
             //actually send packets here
             sendDataPackets(messages, packetsSuccessfullySent);
-            //resample appropriate timeout based on RTT we just sampled
-            rtt_EWMA((int)(System.currentTimeMillis() - packetStart));
 
             //increment packetsSuccessFullySent by appropriate ammount only if all frames were received by server
             if (lastPacketsSentSuccessFully) {
                 packetsSuccessfullySent += windowSize;
-                System.out.print("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets + " current est rtt: " + estRTT);
+                System.out.print("\rData Sent: " + packetsSuccessfullySent + "/" + numPackets);
             } else {
                 //packet not successfully sent, so resend the same info but window size will now be reduced
                 System.out.print("\rShrinking window size");
-                if (estRTT < 5000) {
-                    estRTT = estRTT * 2;
-                }
             }
 
 
@@ -133,7 +121,6 @@ public class UDPClient {
 
     public void sendDataPackets(ArrayList<byte []> fileData, int startIndex) {
 
-        int timeout = estRTT * 4;
 
         if (startIndex + windowSize > fileData.size()) {
             windowSize = (short)(fileData.size() -startIndex);
@@ -165,7 +152,7 @@ public class UDPClient {
                     }
                 }
                 //
-                socket.setSoTimeout(timeout);
+                socket.setSoTimeout(5000);
                 socket.receive(response);
 
                 //response that we received has the correct blocknum, so the server received the data properly
@@ -246,12 +233,7 @@ public class UDPClient {
 
         return messages;
     }
-
-
-
-    void rtt_EWMA(int sampleRTT) {
-        estRTT = (int)((knownRTT_WEIGHT * estRTT) + (sampleRTT_WEIGHT * sampleRTT));
-    }
+    
 
 
 
