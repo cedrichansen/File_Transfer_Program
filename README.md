@@ -1,9 +1,9 @@
 This program is a file transfer program built on top of UDP, using TFTP headers (with some modifications for Sliding windows)
 TFTP info can be found at : https://tools.ietf.org/html/rfc1350
 
-For the purpose of this program, the client only sends a file, and the Server receives a file.
+For the purpose of this program, the client only sends a file/directory, and the Server receives a file/directory.
 
-can execute the program by running: 
+Program can be run using the following commands: 
 
 * mvn package
 
@@ -17,9 +17,9 @@ Available flags:
 
 One of the IPv flags (both server and client can activate this flag)
 
-* 4 : enables IPv4 Datagram packets (default)
+* 4 : enables IPv4 Datagram packets as prefered method(default)
 
-* 6 : enables IPv6 Datagram packets
+* 6 : enables IPv6 Datagram packets as prefered method
 
 
 One of the ack types (client only needs to activate this flag)
